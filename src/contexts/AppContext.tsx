@@ -8,7 +8,7 @@ interface AppContextType {
 
 const defaultState: AppState = {
     content: '',
-    theme: 'light',
+    theme: 'cream',
     viewMode: 'preview',
     isFocusMode: false,
     isDrawerOpen: false,
