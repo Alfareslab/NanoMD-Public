@@ -1,0 +1,131 @@
+/* ============================================
+   NanoMD Theme System - Manus Premium Style
+   Themes: Noir, Slate, Cream
+   ============================================ */
+
+/* -------- Root / Cream Theme (Default) -------- */
+:root,
+:root[data-theme="cream"] {
+    --bg-primary: #FAF9F6;
+    --bg-secondary: #F3F2EE;
+    --bg-tertiary: #EBEAE4;
+    --bg-elevated: #FFFFFF;
+
+    --text-primary: #1A1A1A;
+    --text-secondary: #4A4A4A;
+    --text-tertiary: #888888;
+    --text-muted: #8C8C8C;
+
+    --border-default: #E0DDD5;
+    --border-subtle: #f3f2ee;
+    --border-hover: #C9C4B8;
+
+    --accent-primary: #3B82F6;
+    --accent-primary-hover: #2563EB;
+    --accent-secondary: #60A5FA;
+    --accent-success: #10B981;
+    --accent-danger: #EF4444;
+
+    --preview-bg: #FAF9F6;
+    --preview-code-bg: #F3F2EE;
+    --preview-blockquote-bg: #FFFFFF;
+    --preview-blockquote-border: #D1D1D1;
+    --preview-table-header-bg: transparent;
+    --preview-table-border: #e0e0df;
+    --preview-table-row-alt: transparent;
+    --preview-link: #3182CE;
+    --preview-heading: #1A1A1A;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.08);
+
+    --focus-bg: #FAF9F6;
+    --drawer-bg: #F3F2EE;
+    --toast-bg: #2D3748;
+    --toast-text: #FAF9F6;
+}
+
+/* -------- Noir Theme (Pure Black) -------- */
+:root[data-theme="noir"] {
+    --bg-primary: #000000;
+    --bg-secondary: #0A0A0A;
+    --bg-tertiary: #141414;
+    --bg-elevated: #1a1a1a;
+
+    --text-primary: #FFFFFF;
+    --text-secondary: #a0a09f;
+    --text-tertiary: #666666;
+    --text-muted: #52525B;
+
+    --border-default: #27272A;
+    --border-subtle: #1a1a1a;
+    --border-hover: #3F3F46;
+
+    --accent-primary: #3B82F6;
+    --accent-primary-hover: #60A5FA;
+    --accent-secondary: #F43F5E;
+    --accent-success: #10B981;
+    --accent-danger: #EF4444;
+
+    --preview-bg: #000000;
+    --preview-code-bg: #050505;
+    --preview-blockquote-bg: #050505;
+    --preview-blockquote-border: #333333;
+    --preview-table-header-bg: transparent;
+    --preview-table-border: #333333;
+    --preview-table-row-alt: transparent;
+    --preview-link: #60A5FA;
+    --preview-heading: #FFFFFF;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.6);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.7);
+
+    --focus-bg: #000000;
+    --drawer-bg: #0A0A0A;
+    --toast-bg: #FFFFFF;
+    --toast-text: #000000;
+}
+
+/* -------- Slate Theme -------- */
+:root[data-theme="slate"] {
+    --bg-primary: #0F172A;
+    --bg-secondary: #1E293B;
+    --bg-tertiary: #334155;
+    --bg-elevated: #475569;
+
+    --text-primary: #F1F5F9;
+    --text-secondary: #94A3B8;
+    --text-tertiary: #64748B;
+    --text-muted: #475569;
+
+    --border-default: #334155;
+    --border-subtle: #1e293b;
+    --border-hover: #475569;
+
+    --accent-primary: #38BDF8;
+    --accent-primary-hover: #7DD3FC;
+    --accent-secondary: #818CF8;
+    --accent-success: #34D399;
+    --accent-danger: #F87171;
+
+    --preview-bg: #0F172A;
+    --preview-code-bg: #1E293B;
+    --preview-blockquote-bg: #1E293B;
+    --preview-blockquote-border: #334155;
+    --preview-table-header-bg: transparent;
+    --preview-table-border: #334155;
+    --preview-table-row-alt: transparent;
+    --preview-link: #38BDF8;
+    --preview-heading: #F1F5F9;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+
+    --focus-bg: #0F172A;
+    --drawer-bg: #1E293B;
+    --toast-bg: #F1F5F9;
+    --toast-text: #0F172A;
+}

@@ -1,0 +1,223 @@
+import React, { useState, useEffect } from 'react';
+import { Eye, Pencil, Columns2, Focus, ClipboardPaste, Copy, Trash2, Sun, Moon, HelpCircle } from 'lucide-react';
+import { useAppContext } from '../../contexts/AppContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import { ViewMode } from '../../types';
+
+export const Header: React.FC = () => {
+    const { appState, setAppState } = useAppContext();
+    const { theme, cycleTheme } = useTheme();
+    const [showClearConfirm, setShowClearConfirm] = useState(false);
+    const [selectedText, setSelectedText] = useState('');
+
+    useEffect(() => {
+        const handleSelectionChange = () => {
+            const selection = window.getSelection();
+            if (selection) {
+                setSelectedText(selection.toString());
+            }
+        };
+
+        document.addEventListener('selectionchange', handleSelectionChange);
+        return () => document.removeEventListener('selectionchange', handleSelectionChange);
+    }, []);
+
+    const handleCopySelected = async () => {
+        if (selectedText) {
+            try {
+                await navigator.clipboard.writeText(selectedText);
+                // Optional: show a small toast or visual feedback here
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+            }
+        }
+    };
+
+    const handleModeChange = (mode: ViewMode) => {
+        setAppState((prev) => ({ ...prev, viewMode: mode }));
+    };
+
+    const handlePaste = async () => {
+        try {
+            const text = await navigator.clipboard.readText();
+            if (text) {
+                setAppState((prev) => ({ ...prev, content: text, viewMode: 'preview' }));
+            }
+        } catch (err) {
+            console.error('Failed to read clipboard contents: ', err);
+        }
+    };
+
+    const handleHelp = () => {
+        const helpMarkdown = `# 👋 مرحباً بك في NanoMD
+
+**NanoMD** هو محرر نصوص (Markdown) خفيف، سريع، ومصمم خصيصاً لراحتك. لا يحتاج لإنترنت، ويعمل بالكامل داخل متصفحك!
+
+## ✨ الميزات الأساسية:
+- 🔄 **تحديث مباشر:** اكتب الكود هنا وشاهده يتحول لتنسيق جميل فوراً.
+- 🌓 **وضع التركيز (Focus Mode):** إخفاء كل المشتتات والتركيز فقط على الكتابة.
+- 💾 **حفظ تلقائي:** لا تقلق، كل ما تكتبه يُحفظ تلقائياً في متصفحك.
+- 🔀 **دعم كامل للغتين:** يعمل بكفاءة مع العربية (من اليمين لليسار) والإنجليزية.
+- 🎨 **ثيمات متعددة:** اختر الألوان التي تريح عينك من قائمة الثيمات.
+
+## 🚀 كيف تبدأ؟
+جرب كتابة بعض النصوص الآن! يمكنك استخدام العناوين بوضع \`#\` قبل النص، أو القوائم بوضع \`-\`، وسيتم تحويلها فوراً.
+
+---
+*صُنع بحب للإنتاجية والسرعة ⚡*`;
+
+        setAppState(prev => ({ ...prev, content: helpMarkdown, viewMode: 'split' }));
+    };
+
+    const handleClear = () => {
+        if (showClearConfirm) {
+            setAppState((prev) => ({ ...prev, content: '', viewMode: 'preview' }));
+            setShowClearConfirm(false);
+        } else {
+            setShowClearConfirm(true);
+            setTimeout(() => setShowClearConfirm(false), 3000); // Reset confirm after 3s
+        }
+    };
+
+    const getThemeIcon = () => {
+        switch (theme) {
+            case 'noir':
+                return <Moon className="w-4 h-4" />;
+            case 'slate':
+                return <Focus className="w-4 h-4" />;
+            case 'cream':
+                return <Sun className="w-4 h-4 text-accent" />;
+            default:
+                return <Sun className="w-4 h-4" />;
+        }
+    };
+
+    const getThemeLabel = (t: string) => {
+        const labels: Record<string, string> = {
+            noir: 'أسود (Noir)',
+            slate: 'رمادي (Slate)',
+            cream: 'كريمي (Cream)',
+        };
+        return labels[t] || t;
+    };
+
+    const NavButton = ({
+        active, icon, label, onClick, variant = 'default', hideMobile = false, disabled = false
+    }: {
+        active?: boolean; icon: React.ReactNode; label: string; onClick: () => void; variant?: 'default' | 'danger' | 'highlight'; hideMobile?: boolean; disabled?: boolean
+    }) => (
+        <button
+            onClick={disabled ? undefined : onClick}
+            disabled={disabled}
+            title={label}
+            className={`
+        flex items-center justify-center gap-1.5 h-9 px-4 rounded-xl text-[13px] font-semibold transition-all duration-300
+        ${hideMobile ? 'hidden sm:flex' : 'flex'}
+        ${disabled ? 'opacity-30 cursor-not-allowed' :
+                    active
+                        ? 'bg-accent text-white shadow-lg shadow-accent/20 scale-105 active:scale-95'
+                        : variant === 'danger'
+                            ? 'hover:bg-accent-danger/10 text-accent-danger border border-transparent hover:border-accent-danger/20'
+                            : variant === 'highlight'
+                                ? 'bg-accent/10 text-accent hover:bg-accent/20 border border-accent/10 hover:border-accent/30 shadow-sm'
+                                : 'hover:bg-bg-tertiary/50 text-text-secondary hover:text-text-primary border border-transparent hover:border-border-default'
+                }
+      `}
+        >
+            {icon}
+            <span className="hidden lg:inline">{label}</span>
+            {/* Show labels on tablet for the top row only via CSS if needed, but spec says icon only on tablet. The hidden lg:inline achieves icon only on <1024px */}
+        </button>
+    );
+
+    return (
+        <header className="sticky top-0 z-40 w-full border-b border-border-default bg-bg-primary/70 backdrop-blur-[20px] transition-all duration-300">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 h-auto min-h-[60px] py-3 flex flex-col md:flex-row items-center justify-between gap-4">
+
+                {/* Logo */}
+                <div className="flex items-center gap-2 flex-shrink-0 w-full md:w-auto justify-between md:justify-start">
+                    <button
+                        onClick={() => setAppState(prev => ({ ...prev, content: '', viewMode: 'preview' }))}
+                        className="flex items-center focus:outline-none group"
+                        title="العودة للصفحة الرئيسية"
+                    >
+                        <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-accent/5 border border-accent/20 hover:border-accent/40 transition-all duration-500 group-hover:shadow-xl group-hover:shadow-accent/10">
+                            {/* Refined Concept #1: Sophisticated Integrated N + Notebook */}
+                            <div className="flex items-center justify-center text-accent">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="transition-transform duration-700 group-hover:scale-110">
+                                    {/* Notebook Body */}
+                                    <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="2.5" />
+                                    {/* Binding/Spine Detail */}
+                                    <path d="M7 3V21" stroke="currentColor" strokeWidth="1.5" strokeDasharray="2 2" />
+                                    {/* Integrated Digital 'N' (Stylized as data/lines) */}
+                                    <path d="M10 16V8L16 16V8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="drop-shadow-sm" />
+                                    {/* Aesthetic Dot */}
+                                    <circle cx="18" cy="6" r="1" fill="currentColor" />
+                                </svg>
+                            </div>
+
+                            {/* Refined High-Contrast Wordmark - Enforce LTR to prevent reversal in RTL mode */}
+                            <span className="font-display font-black text-2xl tracking-tighter uppercase flex items-center leading-none" dir="ltr">
+                                <span className="text-accent">Nano</span>
+                                <span className="text-accent/90 ml-0.5">MD</span>
+                            </span>
+                        </div>
+                    </button>
+
+                    {/* Mobile Only Quick Actions (Top Right on Mobile) */}
+                    <div className="flex md:hidden items-center gap-1">
+                        <button
+                            onClick={selectedText ? handleCopySelected : undefined}
+                            disabled={!selectedText}
+                            className={`p-2 rounded-lg transition-colors ${selectedText ? 'text-accent hover:text-accent-hover hover:bg-secondary' : 'text-muted opacity-40 cursor-not-allowed'}`}
+                            title="نسخ المحدد"
+                        >
+                            <Copy className="w-5 h-5" />
+                        </button>
+                        <button onClick={cycleTheme} className="p-2 text-muted hover:text-foreground hover:bg-secondary rounded-lg">
+                            {getThemeIcon()}
+                        </button>
+                    </div>
+                </div>
+
+                {/* Desktop / Tablet Controls */}
+                <div className="hidden md:flex flex-col lg:flex-row items-end lg:items-center gap-2 lg:gap-6 w-full md:w-auto">
+
+                    {/* Row 1: View Modes */}
+                    <div className="flex bg-secondary/30 p-1 rounded-xl border border-border">
+                        <NavButton active={appState.viewMode === 'preview'} onClick={() => handleModeChange('preview')} icon={<Eye className="w-4 h-4" />} label="عرض" />
+                        <NavButton active={appState.viewMode === 'editor'} onClick={() => handleModeChange('editor')} icon={<Pencil className="w-4 h-4" />} label="تحرير" />
+                        <NavButton active={appState.viewMode === 'split'} onClick={() => handleModeChange('split')} icon={<Columns2 className="w-4 h-4" />} label="مقسوم" hideMobile />
+                        <NavButton active={appState.viewMode === 'focus'} onClick={() => handleModeChange('focus')} icon={<Focus className="w-4 h-4" />} label="تركيز" />
+                    </div>
+
+                    {/* Row 2: Actions */}
+                    <div className="flex items-center gap-1">
+                        <NavButton onClick={handlePaste} icon={<ClipboardPaste className="w-4 h-4" />} label="لصق" variant="highlight" />
+
+                        {/* Minimal Copy trigger for desktop header */}
+                        <NavButton
+                            onClick={handleCopySelected}
+                            icon={<Copy className="w-4 h-4" />}
+                            label="نسخ المحدد"
+                            disabled={!selectedText}
+                        />
+
+                        <NavButton
+                            onClick={handleClear}
+                            icon={<Trash2 className={`w-4 h-4 ${showClearConfirm ? 'text-red-600' : ''}`} />}
+                            label={showClearConfirm ? "تأكيد مسح؟" : "مسح"}
+                            variant="danger"
+                        />
+
+                        <div className="w-px h-6 bg-border mx-1 hidden lg:block"></div>
+
+                        <NavButton onClick={cycleTheme} icon={getThemeIcon()} label={getThemeLabel(theme)} hideMobile />
+                        <NavButton onClick={handleHelp} icon={<HelpCircle className="w-4 h-4" />} label="مساعدة" hideMobile />
+                    </div>
+
+                </div>
+            </div>
+        </header>
+    );
+};

@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Typography System (Manus Standards) */
+  --font-arabic: 'IBM Plex Sans Arabic', 'Cairo', 'Segoe UI', Tahoma, sans-serif;
+  --font-inter: "Inter", var(--font-arabic), system-ui, -apple-system, sans-serif;
+  --font-outfit: "Outfit", var(--font-arabic), system-ui, -apple-system, sans-serif;
+  --font-fira: "Fira Code", monospace;
+
+  /* Base Metrics */
+  --text-base: 16px;
+  --line-height-base: 1.6;
+  --weight-normal: 500;
+  --weight-heading: 600;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-inter);
+    font-size: var(--text-base);
+    line-height: var(--line-height-base);
+    font-weight: var(--weight-normal);
+    letter-spacing: -0.011em;
+    direction: rtl;
+    text-align: right;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.2s ease, color 0.2s ease;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-outfit);
+    letter-spacing: -0.02em;
+    font-weight: 600;
+  }
+}
+
+/* Print Styles */
+@media print {
+  body {
+    background: transparent !important;
+    color: black !important;
+  }
+
+  header,
+  nav,
+  .print-hide,
+  textarea {
+    display: none !important;
+  }
+
+  .preview-content {
+    width: 100% !important;
+    padding: 0 !important;
+  }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-hover);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
