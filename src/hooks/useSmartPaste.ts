@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
+import { htmlToMarkdown, plainTextSmartConvert } from '../utils/htmlToMarkdown';
 
 export const useSmartPaste = (onContentReceived: (text: string) => void) => {
     useEffect(() => {
-        // 1. Paste Handler
+        // 1. Smart Paste Handler — prefers HTML for rich content conversion
         const handlePaste = (e: ClipboardEvent) => {
             const target = e.target as HTMLElement;
             if (
@@ -14,10 +15,17 @@ export const useSmartPaste = (onContentReceived: (text: string) => void) => {
             }
 
             if (e.clipboardData) {
-                const text = e.clipboardData.getData('text/plain');
-                if (text) {
+                const html = e.clipboardData.getData('text/html');
+                const plain = e.clipboardData.getData('text/plain');
+
+                if (html) {
                     e.preventDefault();
-                    onContentReceived(text);
+                    const markdown = htmlToMarkdown(html);
+                    onContentReceived(markdown);
+                } else if (plain) {
+                    e.preventDefault();
+                    const converted = plainTextSmartConvert(plain);
+                    onContentReceived(converted);
                 }
             }
         };

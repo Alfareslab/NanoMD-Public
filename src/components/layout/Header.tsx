@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Eye, Pencil, Columns2, Focus, ClipboardPaste, Copy, Trash2, Sun, Moon, HelpCircle } from 'lucide-react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { htmlToMarkdown, plainTextSmartConvert } from '../../utils/htmlToMarkdown';
 import { ViewMode } from '../../types';
 
 export const Header: React.FC = () => {
@@ -39,12 +40,41 @@ export const Header: React.FC = () => {
 
     const handlePaste = async () => {
         try {
-            const text = await navigator.clipboard.readText();
-            if (text) {
-                setAppState((prev) => ({ ...prev, content: text, viewMode: 'preview' }));
+            // Try to read rich clipboard (HTML) first
+            const clipboardItems = await navigator.clipboard.read();
+            for (const item of clipboardItems) {
+                // Check for HTML content first
+                if (item.types.includes('text/html')) {
+                    const htmlBlob = await item.getType('text/html');
+                    const html = await htmlBlob.text();
+                    if (html) {
+                        const markdown = htmlToMarkdown(html);
+                        setAppState((prev) => ({ ...prev, content: markdown, viewMode: 'preview' }));
+                        return;
+                    }
+                }
+                // Fall back to plain text with smart conversion
+                if (item.types.includes('text/plain')) {
+                    const textBlob = await item.getType('text/plain');
+                    const text = await textBlob.text();
+                    if (text) {
+                        const converted = plainTextSmartConvert(text);
+                        setAppState((prev) => ({ ...prev, content: converted, viewMode: 'preview' }));
+                        return;
+                    }
+                }
             }
-        } catch (err) {
-            console.error('Failed to read clipboard contents: ', err);
+        } catch {
+            // Fallback: if clipboard.read() is not supported, use readText
+            try {
+                const text = await navigator.clipboard.readText();
+                if (text) {
+                    const converted = plainTextSmartConvert(text);
+                    setAppState((prev) => ({ ...prev, content: converted, viewMode: 'preview' }));
+                }
+            } catch (err) {
+                console.error('Failed to read clipboard contents: ', err);
+            }
         }
     };
 

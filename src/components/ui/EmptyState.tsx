@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { htmlToMarkdown, plainTextSmartConvert } from '../../utils/htmlToMarkdown';
+import { Logo } from './Logo';
 
 interface EmptyStateProps {
     onSelectTemplate: (content: string) => void;
@@ -48,17 +50,40 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ onSelectTemplate }) => {
                 <button
                     onClick={async () => {
                         try {
-                            const text = await navigator.clipboard.readText();
-                            if (text) onSelectTemplate(text);
-                        } catch (e) {
-                            console.error('Failed to read clipboard', e);
-                            alert('عفواً، يرجى إعطاء صلاحية لصق المحتوى أو استخدام Ctrl+V');
+                            // Smart Paste: try HTML first, fallback to plain text
+                            const clipboardItems = await navigator.clipboard.read();
+                            for (const item of clipboardItems) {
+                                if (item.types.includes('text/html')) {
+                                    const htmlBlob = await item.getType('text/html');
+                                    const html = await htmlBlob.text();
+                                    if (html) {
+                                        onSelectTemplate(htmlToMarkdown(html));
+                                        return;
+                                    }
+                                }
+                                if (item.types.includes('text/plain')) {
+                                    const textBlob = await item.getType('text/plain');
+                                    const text = await textBlob.text();
+                                    if (text) {
+                                        onSelectTemplate(plainTextSmartConvert(text));
+                                        return;
+                                    }
+                                }
+                            }
+                        } catch {
+                            try {
+                                const text = await navigator.clipboard.readText();
+                                if (text) onSelectTemplate(plainTextSmartConvert(text));
+                            } catch (e) {
+                                console.error('Failed to read clipboard', e);
+                                alert('عفواً، يرجى إعطاء صلاحية لصق المحتوى أو استخدام Ctrl+V');
+                            }
                         }
                     }}
                     className="relative group flex flex-col items-center space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700 hover:scale-[1.02] transition-all cursor-pointer focus:outline-none select-none"
                     aria-label="ألصق نص الـ AI هنا"
                 >
-                    <div className="text-6xl sm:text-7xl mb-6 group-hover:drop-shadow-xl group-hover:-translate-y-2 transition-all duration-300">🍌</div>
+                    <Logo className="w-24 h-24 sm:w-28 sm:h-28 mb-6 group-hover:drop-shadow-[0_0_20px_var(--accent)] group-hover:-translate-y-2 group-hover:scale-110 transition-all duration-500" />
                     <h1 className="text-3xl sm:text-4xl font-bold text-foreground group-hover:text-accent transition-colors duration-300">
                         ألصق نص الـ AI هنا
                     </h1>

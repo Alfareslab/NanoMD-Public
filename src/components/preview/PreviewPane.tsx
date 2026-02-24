@@ -1,31 +1,134 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSanitize from 'rehype-sanitize';
 import rehypeHighlight from 'rehype-highlight';
 import { CodeBlock } from './CodeBlock';
+import { ReviewTable } from './ReviewTable';
 import '../../styles/preview.css';
+
+// Review column names that trigger Review Mode
+const REVIEW_COLUMNS = ['القرار', 'الرد', 'قرار المطور', 'decision', 'response', 'dev decision'];
+
+/**
+ * Extract text content from React children (handles nested elements)
+ */
+function extractText(node: React.ReactNode): string {
+    if (typeof node === 'string') return node;
+    if (typeof node === 'number') return String(node);
+    if (!node) return '';
+    if (Array.isArray(node)) return node.map(extractText).join('');
+    if (React.isValidElement(node)) {
+        return extractText((node.props as { children?: React.ReactNode }).children);
+    }
+    return '';
+}
+
+/**
+ * Extract table data (headers + rows) from react-markdown's table children.
+ * react-markdown renders: <table> -> <thead> + <tbody>
+ *   <thead> -> <tr> -> <th> cells
+ *   <tbody> -> <tr> -> <td> cells
+ */
+function extractTableData(children: React.ReactNode): { headers: string[]; rows: string[][] } | null {
+    const childArray = React.Children.toArray(children);
+    let headers: string[] = [];
+    const rows: string[][] = [];
+
+    for (const child of childArray) {
+        if (!React.isValidElement(child)) continue;
+        const tag = child.type;
+        const grandChildren = React.Children.toArray((child.props as { children?: React.ReactNode }).children);
+
+        if (tag === 'thead') {
+            // Extract header row
+            for (const tr of grandChildren) {
+                if (!React.isValidElement(tr)) continue;
+                const ths = React.Children.toArray((tr.props as { children?: React.ReactNode }).children);
+                headers = ths.map((th) => extractText(th));
+            }
+        } else if (tag === 'tbody') {
+            // Extract data rows
+            for (const tr of grandChildren) {
+                if (!React.isValidElement(tr)) continue;
+                const tds = React.Children.toArray((tr.props as { children?: React.ReactNode }).children);
+                rows.push(tds.map((td) => extractText(td)));
+            }
+        }
+    }
+
+    if (headers.length === 0) return null;
+    return { headers, rows };
+}
+
+/**
+ * Check if a table is a review table by examining the last header column
+ */
+function isReviewTable(headers: string[]): boolean {
+    if (headers.length < 3) return false;
+    const lastHeader = headers[headers.length - 1].trim().toLowerCase();
+    return REVIEW_COLUMNS.includes(lastHeader);
+}
+
+/**
+ * Check if the review column cells are mostly empty (indicating it needs review)
+ */
+function hasEmptyReviewCells(rows: string[][]): boolean {
+    if (rows.length === 0) return false;
+    const lastColIndex = rows[0].length - 1;
+    const emptyCount = rows.filter((row) => !row[lastColIndex]?.trim()).length;
+    return emptyCount >= rows.length / 2; // At least half empty
+}
 
 interface PreviewPaneProps {
     content: string;
 }
 
-export const PreviewPane: React.FC<PreviewPaneProps> = ({ content }) => {
+/**
+ * Stable components object for ReactMarkdown — defined outside the
+ * component so it is never recreated between renders, which prevents
+ * ReactMarkdown from unmounting / remounting custom component trees
+ * such as ReviewTable.
+ */
+const markdownComponents = {
+    code({ node, ...props }: { node?: unknown;[key: string]: unknown }) {
+        return <CodeBlock {...props} />;
+    },
+    table({ children }: { children?: React.ReactNode }) {
+        const data = extractTableData(children);
+        if (data && isReviewTable(data.headers) && hasEmptyReviewCells(data.rows)) {
+            return <ReviewTable headers={data.headers} rows={data.rows} />;
+        }
+        // Default table rendering
+        return <table>{children}</table>;
+    },
+};
+
+/**
+ * Stable plugin arrays — defined outside component to preserve
+ * referential equality across renders.
+ */
+const remarkPlugins = [remarkGfm];
+const rehypePlugins = [rehypeSanitize, rehypeHighlight];
+
+/**
+ * PreviewPane — renders markdown content with auto-detection of review tables.
+ * Wrapped with React.memo to prevent re-renders when content hasn't changed.
+ */
+export const PreviewPane: React.FC<PreviewPaneProps> = React.memo(({ content }) => {
     return (
         <div className="w-full h-full overflow-y-auto bg-bg-primary">
             <div className="preview-content max-w-3xl mx-auto pb-24">
                 <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    rehypePlugins={[rehypeSanitize, rehypeHighlight]}
-                    components={{
-                        code({ node, ...props }) {
-                            return <CodeBlock {...props} />;
-                        }
-                    }}
+                    remarkPlugins={remarkPlugins}
+                    rehypePlugins={rehypePlugins}
+                    components={markdownComponents}
                 >
                     {content}
                 </ReactMarkdown>
             </div>
         </div>
     );
-};
+});
+
+PreviewPane.displayName = 'PreviewPane';

@@ -178,3 +178,230 @@
     padding: 0 !important;
     background: transparent !important;
 }
+
+/* ============================================
+   Review Mode Styles
+   ============================================ */
+
+/* Container */
+.review-table-container {
+    margin: 2rem 0;
+    border: 1px solid var(--border-default);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bg-secondary);
+}
+
+/* Progress Bar */
+.review-progress {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-default);
+    background: var(--bg-primary);
+}
+
+.review-progress-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--border-default);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.review-progress-fill {
+    height: 100%;
+    background: var(--accent-primary);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.review-progress-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+/* Table */
+.review-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.review-table thead {
+    border-bottom: 1px solid var(--border-default);
+}
+
+.review-table th {
+    padding: 10px 14px;
+    text-align: right;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 13px;
+    background: var(--bg-primary);
+    border: none;
+}
+
+.review-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-default);
+    color: var(--text-primary);
+    vertical-align: middle;
+    border-left: none;
+    border-right: none;
+}
+
+.review-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.review-table .review-row-done {
+    background: color-mix(in srgb, var(--accent-primary) 5%, transparent);
+}
+
+/* Decision Cell */
+.review-decision-cell {
+    min-width: 220px;
+}
+
+.review-decision-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* Quick Buttons */
+.review-quick-buttons {
+    display: flex;
+    gap: 4px;
+}
+
+.review-quick-btn {
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border-default);
+    background: var(--bg-primary);
+    font-size: 14px;
+    transition: all 0.15s ease;
+    line-height: 1;
+}
+
+.review-quick-btn:hover {
+    border-color: var(--accent-primary);
+    background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+    transform: scale(1.1);
+}
+
+.review-quick-btn.active {
+    border-color: var(--accent-primary);
+    background: color-mix(in srgb, var(--accent-primary) 15%, transparent);
+    box-shadow: 0 0 0 1px var(--accent-primary);
+}
+
+/* Input Field */
+.review-input {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid var(--border-default);
+    border-radius: 6px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-family: inherit;
+    transition: border-color 0.2s ease;
+    outline: none;
+}
+
+.review-input:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 20%, transparent);
+}
+
+.review-input::placeholder {
+    color: var(--text-muted);
+}
+
+/* Input Wrapper (for clear button positioning) */
+.review-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.review-input-wrapper .review-input {
+    flex: 1;
+}
+
+.review-clear-btn {
+    cursor: pointer;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+
+.review-clear-btn:hover {
+    color: #fff;
+    background: #ef4444;
+    border-color: #ef4444;
+    transform: scale(1.1);
+}
+
+/* Copy Bar */
+.review-copy-bar {
+    display: flex;
+    justify-content: center;
+    padding: 12px 16px;
+    border-top: 1px solid var(--border-default);
+    background: var(--bg-primary);
+}
+
+.review-copy-btn {
+    cursor: pointer;
+    padding: 8px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.review-copy-btn.disabled {
+    background: var(--border-default);
+    color: var(--text-muted);
+    cursor: not-allowed;
+}
+
+.review-copy-btn.partial {
+    background: #f59e0b;
+    color: #fff;
+}
+
+.review-copy-btn.partial:hover {
+    background: #d97706;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+.review-copy-btn.complete {
+    background: #10b981;
+    color: #fff;
+}
+
+.review-copy-btn.complete:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}

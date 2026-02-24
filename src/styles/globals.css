@@ -90,3 +90,23 @@
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
+
+/* App Footer */
+.app-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 16px;
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  direction: ltr;
+  flex-shrink: 0;
+}
+
+@media print {
+  .app-footer {
+    display: none !important;
+  }
+}

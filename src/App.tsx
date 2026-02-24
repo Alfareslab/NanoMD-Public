@@ -81,6 +81,13 @@ function App() {
             <SaveIndicator status={saveStatus} />
 
             {appState.viewMode !== 'focus' && <MobileNav />}
+
+            {appState.viewMode !== 'focus' && (
+                <footer className="app-footer">
+                    <span>v1.0.0</span>
+                    <span>© {new Date().getFullYear()} DataCodex. All rights reserved.</span>
+                </footer>
+            )}
         </div>
     );
 }
