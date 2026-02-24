@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSanitize from 'rehype-sanitize';
@@ -91,8 +91,9 @@ interface PreviewPaneProps {
  * such as ReviewTable.
  */
 const markdownComponents = {
-    code({ node, ...props }: { node?: unknown;[key: string]: unknown }) {
-        return <CodeBlock {...props} />;
+    code(props: any) {
+        const { node, ...rest } = props;
+        return <CodeBlock {...rest} />;
     },
     table({ children }: { children?: React.ReactNode }) {
         const data = extractTableData(children);
