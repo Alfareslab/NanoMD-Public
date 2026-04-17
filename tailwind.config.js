@@ -24,7 +24,9 @@ export default {
             fontFamily: {
                 sans: ['Inter', 'IBM Plex Sans Arabic', 'Cairo', 'ui-sans-serif', 'system-ui'],
                 display: ['Outfit', 'IBM Plex Sans Arabic', 'Cairo', 'sans-serif'],
-                mono: ['Fira Code', 'monospace'],
+                mono: ['JetBrains Mono', 'Fira Code', 'Cascadia Code', 'monospace'],
+                arabic: ['IBM Plex Sans Arabic', 'Cairo', 'Segoe UI', 'Tahoma', 'sans-serif'],
+                latin: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
             },
             fontWeight: {
                 normal: '500',

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { htmlToMarkdown, plainTextSmartConvert } from '../../utils/htmlToMarkdown';
 import { Logo } from './Logo';
 
@@ -8,6 +8,20 @@ interface EmptyStateProps {
 
 export const EmptyState: React.FC<EmptyStateProps> = ({ onSelectTemplate }) => {
     const [isDragOver, setIsDragOver] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Handle file upload from disk
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const text = event.target?.result as string;
+            if (text) onSelectTemplate(text);
+        };
+        reader.readAsText(file, 'UTF-8');
+        e.target.value = '';
+    };
 
     // Drag and drop handlers specific to EmptyState bounds
     const handleDragOver = (e: React.DragEvent) => {
@@ -100,9 +114,22 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ onSelectTemplate }) => {
 
                 {/* Templates Section Removed per user request */}
 
-                {/* Drag Drop Hint */}
-                <div className="text-sm text-muted animate-in fade-in duration-1000 delay-300">
+                {/* Drag Drop Hint + Upload Button */}
+                <div className="text-sm text-muted animate-in fade-in duration-1000 delay-300 flex flex-col items-center gap-3">
                     <p>أو اسحب ملف <span className="font-mono text-xs bg-secondary px-1 outline outline-1 outline-border rounded">.md</span> هنا</p>
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".md,.txt,.markdown"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                    />
+                    <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="px-4 py-2 rounded-xl text-sm font-medium border border-border hover:border-accent/40 hover:bg-accent/5 text-muted hover:text-accent transition-all duration-300"
+                    >
+                        📂 رفع ملف من الجهاز
+                    </button>
                 </div>
 
             </div>

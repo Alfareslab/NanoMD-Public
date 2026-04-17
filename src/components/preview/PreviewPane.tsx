@@ -10,6 +10,9 @@ import '../../styles/preview.css';
 // Review column names that trigger Review Mode
 const REVIEW_COLUMNS = ['القرار', 'الرد', 'قرار المطور', 'decision', 'response', 'dev decision'];
 
+// Recommendation column names for split-column detection (new format)
+export const RECOMMENDATION_COLUMNS = ['التوصية', 'recommendation', 'توصية'];
+
 /**
  * Extract text content from React children (handles nested elements)
  */
@@ -91,9 +94,22 @@ interface PreviewPaneProps {
  * such as ReviewTable.
  */
 const markdownComponents = {
-    code(props: any) {
-        const { node, ...rest } = props;
-        return <CodeBlock {...rest} />;
+    code({ className, children, ...props }: { className?: string; children?: React.ReactNode; [key: string]: any }) {
+        // Inline code: no language className
+        const isInline = !className;
+        if (isInline) {
+            return <code {...props}>{children}</code>;
+        }
+        // Block code: delegate to CodeBlock (which renders its own <pre>)
+        return (
+            <CodeBlock className={className}>
+                {children}
+            </CodeBlock>
+        );
+    },
+    // Prevent double-wrapping: CodeBlock renders its own <pre>
+    pre({ children }: { children?: React.ReactNode }) {
+        return <>{children}</>;
     },
     table({ children }: { children?: React.ReactNode }) {
         const data = extractTableData(children);

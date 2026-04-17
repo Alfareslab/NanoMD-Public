@@ -16,15 +16,31 @@ import { useAutoSave } from './hooks/useAutoSave';
 function App() {
     const { appState, setAppState } = useAppContext();
 
-    // Load initial draft from localStorage if available
+    // Load content from URL hash (Base64 encoded) — takes priority over localStorage
     useEffect(() => {
+        const hash = window.location.hash.slice(1);
+        if (hash) {
+            try {
+                const decoded = atob(decodeURIComponent(hash));
+                if (decoded.trim().length > 0) {
+                    setAppState(prev => ({ ...prev, content: decoded, viewMode: 'preview' }));
+                    // Clear hash from URL to prevent re-loading on refresh
+                    window.history.replaceState(null, '', window.location.pathname);
+                    return; // Skip localStorage loading
+                }
+            } catch (e) {
+                console.warn('[NanoMD] Invalid URL hash content:', e);
+            }
+        }
+
+        // Fallback: Load initial draft from localStorage if available
         try {
             const draft = window.localStorage.getItem('nanomd_current_draft');
             if (draft && draft.length > 0) {
                 setAppState(prev => ({ ...prev, content: JSON.parse(draft) }));
             }
         } catch (e) {
-            console.warn("Failed to load draft", e);
+            console.warn('Failed to load draft', e);
         }
     }, [setAppState]);
 
@@ -84,7 +100,7 @@ function App() {
 
             {appState.viewMode !== 'focus' && (
                 <footer className="app-footer">
-                    <span>v1.0.0</span>
+                    <span>v1.1.1</span>
                     <span>© {new Date().getFullYear()} DataCodex. All rights reserved.</span>
                 </footer>
             )}

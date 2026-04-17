@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Eye, Pencil, Columns2, Focus, ClipboardPaste, Copy, Trash2, Sun, Moon, HelpCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Eye, Pencil, Columns2, Focus, ClipboardPaste, Copy, Trash2, Sun, Moon, HelpCircle, Upload } from 'lucide-react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { htmlToMarkdown, plainTextSmartConvert } from '../../utils/htmlToMarkdown';
@@ -10,6 +10,23 @@ export const Header: React.FC = () => {
     const { theme, cycleTheme } = useTheme();
     const [showClearConfirm, setShowClearConfirm] = useState(false);
     const [selectedText, setSelectedText] = useState('');
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Handle file upload from disk
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const text = event.target?.result as string;
+            if (text) {
+                setAppState(prev => ({ ...prev, content: text, viewMode: 'preview' }));
+            }
+        };
+        reader.readAsText(file, 'UTF-8');
+        // Reset input so re-uploading same file triggers onChange
+        e.target.value = '';
+    };
 
     useEffect(() => {
         const handleSelectionChange = () => {
@@ -224,6 +241,16 @@ export const Header: React.FC = () => {
                     {/* Row 2: Actions */}
                     <div className="flex items-center gap-1">
                         <NavButton onClick={handlePaste} icon={<ClipboardPaste className="w-4 h-4" />} label="لصق" variant="highlight" />
+
+                        {/* File Upload */}
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept=".md,.txt,.markdown"
+                            onChange={handleFileUpload}
+                            className="hidden"
+                        />
+                        <NavButton onClick={() => fileInputRef.current?.click()} icon={<Upload className="w-4 h-4" />} label="رفع ملف" />
 
                         {/* Minimal Copy trigger for desktop header */}
                         <NavButton

@@ -26,6 +26,16 @@
     --accent-success: #10B981;
     --accent-danger: #EF4444;
 
+    /* Manus Style Variables */
+    --bg-elevated: #ffffff;
+    --border-color: #e5e5e5;
+    --accent-hover: #3b82f6;
+    --code-bg: #f6f6f6;
+    --code-border: #e5e5e5;
+    --link-color: #2563eb;
+    --link-hover: #1d4ed8;
+    --hover-bg: rgba(0, 0, 0, 0.02);
+
     --preview-bg: #FAF9F6;
     --preview-code-bg: #F3F2EE;
     --preview-blockquote-bg: #FFFFFF;
@@ -68,6 +78,16 @@
     --accent-success: #10B981;
     --accent-danger: #EF4444;
 
+    /* Manus Style Variables */
+    --bg-elevated: #1a1a1a;
+    --border-color: #333333;
+    --accent-hover: #60a5fa;
+    --code-bg: #111111;
+    --code-border: #222222;
+    --link-color: #60a5fa;
+    --link-hover: #93c5fd;
+    --hover-bg: rgba(255, 255, 255, 0.03);
+
     --preview-bg: #000000;
     --preview-code-bg: #050505;
     --preview-blockquote-bg: #050505;
@@ -109,6 +129,16 @@
     --accent-secondary: #818CF8;
     --accent-success: #34D399;
     --accent-danger: #F87171;
+
+    /* Manus Style Variables */
+    --bg-elevated: #faf8f5;
+    --border-color: #e0d5c5;
+    --accent-hover: #d97706;
+    --code-bg: #f0e8dc;
+    --code-border: #e0d5c5;
+    --link-color: #b45309;
+    --link-hover: #92400e;
+    --hover-bg: rgba(0, 0, 0, 0.02);
 
     --preview-bg: #0F172A;
     --preview-code-bg: #1E293B;
