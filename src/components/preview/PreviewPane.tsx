@@ -169,7 +169,7 @@ const sanitizeSchema = {
     },
 };
 
-const rehypePlugins = [[rehypeSanitize, sanitizeSchema], rehypeHighlight];
+const rehypePlugins: any[] = [[rehypeSanitize, sanitizeSchema], rehypeHighlight];
 
 /**
  * PreviewPane — renders markdown content with auto-detection of review tables.

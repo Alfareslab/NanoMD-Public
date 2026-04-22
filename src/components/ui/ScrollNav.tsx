@@ -35,7 +35,6 @@ export const ScrollNav = () => {
         // Near bottom (1 page left): Top=show, Up=show, Down=show, Bottom=hide
         // At very bottom: Top=show, Up=show, Down=hide, Bottom=hide
 
-        const isAtTop = scrollTop < 50;
         const isPastOnePage = scrollTop > clientHeight;
         const isPastThreePages = scrollTop > clientHeight * 3;
         
