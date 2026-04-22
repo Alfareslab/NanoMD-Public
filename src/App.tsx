@@ -7,6 +7,7 @@ import { EditorPane } from './components/editor/EditorPane';
 import { SplitView } from './components/layout/SplitView';
 import { FocusMode } from './components/layout/FocusMode';
 import { CopyMenu } from './components/ui/CopyMenu';
+import { ScrollNav } from './components/ui/ScrollNav';
 import { SaveIndicator } from './components/ui/SaveIndicator';
 import { useSmartPaste } from './hooks/useSmartPaste';
 import { useKeyboard } from './hooks/useKeyboard';
@@ -152,6 +153,7 @@ function App() {
                             }
                         />
                         <CopyMenu markdownContent={appState.content} />
+                        {(appState.viewMode === 'preview' || appState.viewMode === 'split') && <ScrollNav />}
                     </>
                 ) : (
                     <EmptyState onSelectTemplate={handleSelectTemplate} />
@@ -164,7 +166,7 @@ function App() {
 
             {appState.viewMode !== 'focus' && (
                 <footer className="app-footer">
-                    <span>v1.2.0</span>
+                    <span>v1.3.0</span>
                     <span>© {new Date().getFullYear()} DataCodex. All rights reserved.</span>
                 </footer>
             )}

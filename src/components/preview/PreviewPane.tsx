@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import rehypeSanitize from 'rehype-sanitize';
+import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import rehypeHighlight from 'rehype-highlight';
 import { CodeBlock } from './CodeBlock';
 import { ReviewTable } from './ReviewTable';
@@ -93,12 +93,35 @@ interface PreviewPaneProps {
  * ReactMarkdown from unmounting / remounting custom component trees
  * such as ReviewTable.
  */
+
+function InlineCode({ children }: { children?: React.ReactNode }) {
+    const [copied, setCopied] = useState(false);
+    const text = String(children || '');
+    
+    const handleClick = async () => {
+        try {
+            await navigator.clipboard.writeText(text.trim());
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1500);
+        } catch (err) {
+            console.error('Failed to copy inline code:', err);
+        }
+    };
+
+    return (
+        <span className="inline-code-wrapper" onClick={handleClick}>
+            <code>{children}</code>
+            {copied && <span className="inline-code-tooltip">تم النسخ ✓</span>}
+        </span>
+    );
+}
+
 const markdownComponents = {
     code({ className, children, ...props }: { className?: string; children?: React.ReactNode; [key: string]: any }) {
         // Inline code: no language className
         const isInline = !className;
         if (isInline) {
-            return <code {...props}>{children}</code>;
+            return <InlineCode {...props}>{children}</InlineCode>;
         }
         // Block code: delegate to CodeBlock (which renders its own <pre>)
         return (
@@ -119,6 +142,13 @@ const markdownComponents = {
         // Default table rendering
         return <table>{children}</table>;
     },
+    a({ href, children, ...props }: { href?: string; children?: React.ReactNode; [key: string]: any }) {
+        return (
+            <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
+                {children}
+            </a>
+        );
+    },
 };
 
 /**
@@ -126,7 +156,20 @@ const markdownComponents = {
  * referential equality across renders.
  */
 const remarkPlugins = [remarkGfm];
-const rehypePlugins = [rehypeSanitize, rehypeHighlight];
+
+const sanitizeSchema = {
+    ...defaultSchema,
+    attributes: {
+        ...defaultSchema.attributes,
+        a: [...(defaultSchema.attributes?.a || []), 'href', 'target', 'rel'],
+    },
+    protocols: {
+        ...defaultSchema.protocols,
+        href: ['http', 'https', 'mailto'],
+    },
+};
+
+const rehypePlugins = [[rehypeSanitize, sanitizeSchema], rehypeHighlight];
 
 /**
  * PreviewPane — renders markdown content with auto-detection of review tables.

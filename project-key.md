@@ -6,7 +6,7 @@
 
 - `src/`
   - `components/`
-    - `ui/` : المكونات القابلة لإعادة الاستخدام (أزرار، لوجو، `ShareHistory.tsx`، الخ).
+    - `ui/` : المكونات القابلة لإعادة الاستخدام (أزرار، لوجو، `ShareHistory.tsx`، `ScrollNav.tsx`، الخ).
     - `editor/` : مكونات المحرر وعرض المحتوى.
     - `layout/` : مكونات التخطيط (Header, MobileNav, SplitView, FocusMode).
     - `preview/` : مكونات العرض (PreviewPane, ReviewTable, CodeBlock).
@@ -15,9 +15,11 @@
   - `styles/` : ملفات الـ CSS الرئيسية.
   - `utils/` : دوال مساعدة.
   - `types/` : تعريفات TypeScript.
-  - `worker.ts` : سكريبت Cloudflare Worker للتعامل مع KV API للمشاركة.
+  - `worker.ts` : سكريبت Cloudflare Worker للتعامل مع KV API للمشاركة (الواجهة الخلفية).
+- `scripts/` : سكريبتات مساعدة لأتمتة المهام (مثل `deploy.bat` و `03-run-dev.cmd`).
 - `plans/` : خطط التنفيذ.
 - `reviews/` : ملفات المراجعة والقرارات.
+- `docs/` : ملفات التوثيق والعروض التقديمية (مثل `presentation-ar.md`).
 - `improvements/` : وثائق التحسينات المقترحة.
 
 ## الملفات المفصلية

@@ -35,6 +35,15 @@
     text-align: right;
 }
 
+/* ========== BiDi Isolation for Inline Elements ========== */
+.preview-content strong,
+.preview-content em,
+.preview-content b,
+.preview-content i,
+.preview-content a {
+    unicode-bidi: isolate;
+}
+
 /* ========== Headings ========== */
 .preview-content h1,
 .preview-content h2,
@@ -540,6 +549,42 @@
     color: var(--accent-primary);
     border-bottom: none !important;
     letter-spacing: 0.02em;
+}
+
+/* ============================================
+   Inline Code Copy Tooltip
+   ============================================ */
+
+.inline-code-wrapper {
+    position: relative;
+    cursor: pointer;
+    display: inline;
+}
+
+.inline-code-wrapper:hover code {
+    background: var(--code-bg-hover, var(--border-default));
+    border-color: var(--accent-primary);
+}
+
+.inline-code-tooltip {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    pointer-events: none;
+    animation: tooltip-fade 1.5s ease forwards;
+    z-index: 10;
+}
+
+@keyframes tooltip-fade {
+    0%, 70% { opacity: 1; }
+    100% { opacity: 0; }
 }
 
 /* ============================================
