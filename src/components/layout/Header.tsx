@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Eye, Pencil, Columns2, Focus, ClipboardPaste, Copy, Trash2, Sun, Moon, HelpCircle, Upload, Printer, Share2, Loader2, History } from 'lucide-react';
+import { Eye, Pencil, Columns2, Focus, ClipboardPaste, Copy, Trash2, Sun, Moon, HelpCircle, Upload, Printer, Share2, Loader2, History, Save } from 'lucide-react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { htmlToMarkdown, plainTextSmartConvert } from '../../utils/htmlToMarkdown';
@@ -18,6 +18,28 @@ export const Header: React.FC<HeaderProps> = ({ hasContent = false }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isSharing, setIsSharing] = useState(false);
     const [showHistoryModal, setShowHistoryModal] = useState(false);
+
+    const handleLocalSave = () => {
+        if (!appState.content.trim()) return;
+        
+        const title = appState.content.split('\n').find(line => line.trim().length > 0)?.substring(0, 50).replace(/[#*]/g, '').trim() || 'مسودة غير مسماة';
+        const contentPreview = appState.content.substring(0, 100);
+        const history = JSON.parse(localStorage.getItem('nano_share_history') || '[]');
+        
+        const newHistory = [{ 
+            id: 'local-' + Math.random().toString(36).substring(2, 10), 
+            url: '', 
+            title, 
+            timestamp: Date.now(),
+            contentPreview,
+            type: 'local',
+            fullContent: appState.content
+        }, ...history].slice(0, 20);
+        
+        localStorage.setItem('nano_share_history', JSON.stringify(newHistory));
+        
+        alert('تم حفظ المسودة محلياً في السجل بنجاح! 💾');
+    };
 
     const handleShare = async () => {
         if (!appState.content.trim()) return;
@@ -315,6 +337,11 @@ export const Header: React.FC<HeaderProps> = ({ hasContent = false }) => {
                         {hasContent && !appState.isSharedView && (
                             <>
                                 <NavButton
+                                    onClick={handleLocalSave}
+                                    icon={<Save className="w-4 h-4" />}
+                                    label="حفظ مسودة"
+                                />
+                                <NavButton
                                     onClick={handleShare}
                                     icon={isSharing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
                                     label="مشاركة"
@@ -358,7 +385,13 @@ export const Header: React.FC<HeaderProps> = ({ hasContent = false }) => {
 
             {/* Share History Modal */}
             {showHistoryModal && (
-                <ShareHistory onClose={() => setShowHistoryModal(false)} />
+                <ShareHistory 
+                    onClose={() => setShowHistoryModal(false)} 
+                    onRestore={(content) => {
+                        setAppState(prev => ({ ...prev, content, viewMode: 'preview' }));
+                        setShowHistoryModal(false);
+                    }}
+                />
             )}
         </header>
     );

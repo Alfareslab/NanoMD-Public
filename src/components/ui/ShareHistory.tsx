@@ -9,13 +9,16 @@ export interface ShareHistoryItem {
     timestamp: number;
     expiresAt?: number;
     contentPreview?: string;
+    type?: 'shared' | 'local';
+    fullContent?: string;
 }
 
 interface ShareHistoryProps {
     onClose: () => void;
+    onRestore?: (content: string) => void;
 }
 
-export const ShareHistory: React.FC<ShareHistoryProps> = ({ onClose }) => {
+export const ShareHistory: React.FC<ShareHistoryProps> = ({ onClose, onRestore }) => {
     const [history, setHistory] = useState<ShareHistoryItem[]>([]);
 
     useEffect(() => {
@@ -103,21 +106,38 @@ export const ShareHistory: React.FC<ShareHistoryProps> = ({ onClose }) => {
                                         </div>
 
                                         <div className="flex gap-2 mt-2">
-                                            <button 
-                                                onClick={() => handleCopy(item.url)} 
-                                                disabled={expired}
-                                                className="flex-1 flex justify-center items-center gap-1.5 text-xs bg-accent/10 hover:bg-accent/20 disabled:hover:bg-accent/10 text-accent py-2 rounded-lg font-medium transition-colors"
-                                            >
-                                                <Copy className="w-3.5 h-3.5" /> نسخ الرابط
-                                            </button>
-                                            <a 
-                                                href={item.url} 
-                                                target="_blank" 
-                                                rel="noreferrer" 
-                                                className={`flex-1 flex justify-center items-center gap-1.5 text-xs bg-secondary hover:bg-secondary/80 text-center py-2 rounded-lg font-medium transition-colors border border-border-default ${expired ? 'pointer-events-none opacity-50' : ''}`}
-                                            >
-                                                <ExternalLink className="w-3.5 h-3.5" /> فتح
-                                            </a>
+                                            {item.type === 'local' ? (
+                                                <button 
+                                                    onClick={() => {
+                                                        if (item.fullContent) {
+                                                            onRestore?.(item.fullContent);
+                                                        } else {
+                                                            alert('تعذر استرجاع المحتوى. ربما يكون مسودة قديمة جداً.');
+                                                        }
+                                                    }}
+                                                    className="flex-1 flex justify-center items-center gap-1.5 text-xs bg-accent/10 hover:bg-accent/20 text-accent py-2 rounded-lg font-medium transition-colors"
+                                                >
+                                                    <Copy className="w-3.5 h-3.5" /> استرجاع النص
+                                                </button>
+                                            ) : (
+                                                <>
+                                                    <button 
+                                                        onClick={() => handleCopy(item.url)} 
+                                                        disabled={expired}
+                                                        className="flex-1 flex justify-center items-center gap-1.5 text-xs bg-accent/10 hover:bg-accent/20 disabled:hover:bg-accent/10 text-accent py-2 rounded-lg font-medium transition-colors"
+                                                    >
+                                                        <Copy className="w-3.5 h-3.5" /> نسخ الرابط
+                                                    </button>
+                                                    <a 
+                                                        href={item.url} 
+                                                        target="_blank" 
+                                                        rel="noreferrer" 
+                                                        className={`flex-1 flex justify-center items-center gap-1.5 text-xs bg-secondary hover:bg-secondary/80 text-center py-2 rounded-lg font-medium transition-colors border border-border-default ${expired ? 'pointer-events-none opacity-50' : ''}`}
+                                                    >
+                                                        <ExternalLink className="w-3.5 h-3.5" /> فتح
+                                                    </a>
+                                                </>
+                                            )}
                                             <button 
                                                 onClick={() => handleDelete(item.id)}
                                                 className="flex items-center justify-center px-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg transition-colors border border-red-500/20"
