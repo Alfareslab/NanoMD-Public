@@ -322,17 +322,20 @@ export const Header: React.FC<HeaderProps> = ({ hasContent = false }) => {
                                     disabled={isSharing}
                                 />
                                 <NavButton
-                                    onClick={() => setShowHistoryModal(true)}
-                                    icon={<History className="w-4 h-4" />}
-                                    label="السجل"
-                                />
-                                <NavButton
                                     onClick={() => window.print()}
                                     icon={<Printer className="w-4 h-4" />}
                                     label="طباعة"
                                     variant="highlight"
                                 />
                             </>
+                        )}
+
+                        {!appState.isSharedView && (
+                            <NavButton
+                                onClick={() => setShowHistoryModal(true)}
+                                icon={<History className="w-4 h-4" />}
+                                label="السجل"
+                            />
                         )}
 
                         {!appState.isSharedView && (
