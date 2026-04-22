@@ -53,6 +53,70 @@ export default {
             }
         }
 
+        // API Route: POST /api/translate
+        if (request.method === "POST" && url.pathname === "/api/translate") {
+            try {
+                // Rate Limiting (50 requests / minute)
+                const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+                const rlKey = `rl_${ip}_${Math.floor(Date.now() / 60000)}`;
+                const currentCount = parseInt(await env.SHARED_CONTENT.get(rlKey) || "0");
+                
+                if (currentCount >= 50) {
+                    return new Response(JSON.stringify({ error: "تجاوزت الحد المسموح للترجمة. حاول مرة أخرى بعد دقيقة." }), {
+                        status: 429,
+                        headers: { "Content-Type": "application/json" }
+                    });
+                }
+                await env.SHARED_CONTENT.put(rlKey, (currentCount + 1).toString(), { expirationTtl: 60 });
+
+                const body = await request.json() as { text?: string, targetLang?: "ar" | "en" };
+                if (!body.text || !body.targetLang) {
+                    return new Response(JSON.stringify({ error: "النص واللغة الهدف مطلوبان" }), {
+                        status: 400,
+                        headers: { "Content-Type": "application/json" }
+                    });
+                }
+
+                if (body.text.length > 5000) {
+                    return new Response(JSON.stringify({ error: "النص يتجاوز الحد الأقصى (5000 حرف)" }), {
+                        status: 400,
+                        headers: { "Content-Type": "application/json" }
+                    });
+                }
+
+                const systemPrompt = `You are a professional translator. Translate the following Markdown text to ${body.targetLang === "ar" ? "Arabic" : "English"}. Rules:
+1. Preserve ALL Markdown formatting (headers, bold, italic, lists, links, tables, etc.)
+2. Do NOT translate code blocks (\`\`\` or inline \`code\`)
+3. Do NOT translate URLs or file paths
+4. Do NOT add explanations — output ONLY the translated text
+5. Maintain the original paragraph structure`;
+
+                try {
+                    const response = await env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+                        messages: [
+                            { role: 'system', content: systemPrompt },
+                            { role: 'user', content: body.text }
+                        ]
+                    });
+
+                    return new Response(JSON.stringify({ translated: response.response }), {
+                        status: 200,
+                        headers: { "Content-Type": "application/json" }
+                    });
+                } catch (aiError) {
+                    return new Response(JSON.stringify({ error: "حدث خطأ في خدمة الترجمة. الحصة اليومية قد تكون انتهت أو الخدمة غير متاحة مؤقتاً." }), {
+                        status: 503,
+                        headers: { "Content-Type": "application/json" }
+                    });
+                }
+            } catch (e) {
+                return new Response(JSON.stringify({ error: "طلب غير صالح" }), {
+                    status: 400,
+                    headers: { "Content-Type": "application/json" }
+                });
+            }
+        }
+
         // API Route: GET /api/share/:id
         if (request.method === "GET" && url.pathname.startsWith("/api/share/")) {
             const id = url.pathname.split("/").pop();

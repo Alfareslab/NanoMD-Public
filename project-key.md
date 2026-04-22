@@ -15,7 +15,7 @@
   - `styles/` : ملفات الـ CSS الرئيسية.
   - `utils/` : دوال مساعدة.
   - `types/` : تعريفات TypeScript.
-  - `worker.ts` : سكريبت Cloudflare Worker للتعامل مع KV API للمشاركة (الواجهة الخلفية).
+  - `worker.ts` : سكريبت Cloudflare Worker للتعامل مع KV API للمشاركة و Workers AI للترجمة (الواجهة الخلفية).
 - `scripts/` : سكريبتات مساعدة لأتمتة المهام (مثل `deploy.bat` و `03-run-dev.cmd`).
 - `plans/` : خطط التنفيذ.
 - `reviews/` : ملفات المراجعة والقرارات.

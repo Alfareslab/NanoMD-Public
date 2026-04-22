@@ -1,13 +1,20 @@
 import { useEffect, useState, useCallback } from 'react';
-import { ChevronsUp, ChevronUp, ChevronDown, ChevronsDown } from 'lucide-react';
+import { ChevronsUp, ChevronUp, ChevronDown, ChevronsDown, Undo2, Loader2 } from 'lucide-react';
+import { useAppContext } from '../../contexts/AppContext';
 
 export const ScrollNav = () => {
+    const { appState, setAppState } = useAppContext();
     const [showTop, setShowTop] = useState(false);
     const [showUp, setShowUp] = useState(false);
     const [showDown, setShowDown] = useState(false);
     const [showBottom, setShowBottom] = useState(false);
     const [progress, setProgress] = useState(0);
     const [isVisible, setIsVisible] = useState(false);
+    
+    // Translation States
+    const [isTranslating, setIsTranslating] = useState(false);
+    const [translateError, setTranslateError] = useState<string | null>(null);
+    const [undoHistory, setUndoHistory] = useState<string | null>(null);
 
     const handleScroll = useCallback(() => {
         const container = document.getElementById('print-area');
@@ -28,13 +35,6 @@ export const ScrollNav = () => {
         const scrollPct = (scrollTop / maxScroll) * 100;
         setProgress(Math.max(0, Math.min(100, scrollPct)));
 
-        // Logic based on the spec
-        // At very top: Top=hide, Up=hide, Down=show, Bottom=show
-        // After 1 page: Top=hide, Up=show, Down=show, Bottom=show
-        // After 3 pages: Top=show, Up=show, Down=show, Bottom=show
-        // Near bottom (1 page left): Top=show, Up=show, Down=show, Bottom=hide
-        // At very bottom: Top=show, Up=show, Down=hide, Bottom=hide
-
         const isPastOnePage = scrollTop > clientHeight;
         const isPastThreePages = scrollTop > clientHeight * 3;
         
@@ -52,10 +52,8 @@ export const ScrollNav = () => {
         const container = document.getElementById('print-area');
         if (container) {
             container.addEventListener('scroll', handleScroll);
-            // Initial check
             handleScroll();
             
-            // Add resize observer to catch height changes
             const resizeObserver = new ResizeObserver(() => handleScroll());
             resizeObserver.observe(container);
 
@@ -89,7 +87,7 @@ export const ScrollNav = () => {
 
     const handlePageUp = () => {
         const container = document.getElementById('print-area');
-        if (container) scrollByAmount(-(container.clientHeight * 0.8)); // scroll 80% of page
+        if (container) scrollByAmount(-(container.clientHeight * 0.8));
     };
 
     const handlePageDown = () => {
@@ -97,12 +95,72 @@ export const ScrollNav = () => {
         if (container) scrollByAmount(container.clientHeight * 0.8);
     };
 
-    if (!isVisible) return null;
+    // Translation Handlers
+    const handleTranslate = async (targetLang: 'ar' | 'en') => {
+        const selection = window.getSelection()?.toString();
+        const textToTranslate = selection || appState.content;
+        
+        if (!textToTranslate.trim()) return;
+
+        setIsTranslating(true);
+        setTranslateError(null);
+
+        try {
+            const response = await fetch('/api/translate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: textToTranslate, targetLang })
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || 'حدث خطأ أثناء الترجمة');
+            }
+
+            // Save for undo
+            setUndoHistory(appState.content);
+
+            if (selection) {
+                setAppState(prev => ({
+                    ...prev,
+                    content: prev.content.replace(selection, data.translated)
+                }));
+            } else {
+                setAppState(prev => ({
+                    ...prev,
+                    content: data.translated
+                }));
+            }
+        } catch (error: any) {
+            setTranslateError(error.message || 'حدث خطأ غير متوقع');
+            setTimeout(() => setTranslateError(null), 3000);
+        } finally {
+            setIsTranslating(false);
+        }
+    };
+
+    const handleUndo = () => {
+        if (undoHistory) {
+            setAppState(prev => ({ ...prev, content: undoHistory }));
+            setUndoHistory(null);
+        }
+    };
+
+    // Make ScrollNav always visible if there's undo history or we're translating so user can see the buttons
+    const showControls = isVisible || undoHistory || isTranslating;
+    if (!showControls) return null;
 
     return (
         <>
-            {/* Smart Scroll Navigation Buttons */}
             <div className="scroll-nav-wrapper">
+                {/* Toast Error Message */}
+                {translateError && (
+                    <div className="absolute top-0 right-full mr-4 whitespace-nowrap bg-red-500/90 text-white px-3 py-1.5 rounded text-sm backdrop-blur-sm border border-red-400 animate-toast shadow-lg">
+                        {translateError}
+                    </div>
+                )}
+                
                 <div className="scroll-progress-container-vertical">
                     <div 
                         className="scroll-progress-bar-vertical" 
@@ -110,42 +168,75 @@ export const ScrollNav = () => {
                     />
                 </div>
                 <div className="scroll-nav">
-                <button 
-                    className={`scroll-nav-btn ${showTop ? 'visible' : ''}`}
-                    onClick={scrollToTop}
-                    title="أعلى الملف"
-                    aria-label="Scroll to top"
-                >
-                    <ChevronsUp size={20} />
-                </button>
-                
-                <button 
-                    className={`scroll-nav-btn ${showUp ? 'visible' : ''}`}
-                    onClick={handlePageUp}
-                    title="صفحة لأعلى"
-                    aria-label="Page up"
-                >
-                    <ChevronUp size={20} />
-                </button>
-                
-                <button 
-                    className={`scroll-nav-btn ${showDown ? 'visible' : ''}`}
-                    onClick={handlePageDown}
-                    title="صفحة لأسفل"
-                    aria-label="Page down"
-                >
-                    <ChevronDown size={20} />
-                </button>
-                
-                <button 
-                    className={`scroll-nav-btn ${showBottom ? 'visible' : ''}`}
-                    onClick={scrollToBottom}
-                    title="أسفل الملف"
-                    aria-label="Scroll to bottom"
-                >
-                    <ChevronsDown size={20} />
-                </button>
-            </div>
+                    {/* Translation Controls */}
+                    <div className="flex flex-col gap-2 pb-2 mb-2 border-b border-border-default">
+                        <button 
+                            className="scroll-nav-btn visible"
+                            onClick={() => handleTranslate('ar')}
+                            disabled={isTranslating}
+                            title="ترجم للعربية"
+                            aria-label="Translate to Arabic"
+                        >
+                            {isTranslating ? <Loader2 size={16} className="animate-spin" /> : <span className="font-bold text-xs">AR</span>}
+                        </button>
+                        <button 
+                            className="scroll-nav-btn visible"
+                            onClick={() => handleTranslate('en')}
+                            disabled={isTranslating}
+                            title="ترجم للإنجليزية"
+                            aria-label="Translate to English"
+                        >
+                            {isTranslating ? <Loader2 size={16} className="animate-spin" /> : <span className="font-bold text-xs">EN</span>}
+                        </button>
+                        {undoHistory && (
+                            <button 
+                                className="scroll-nav-btn visible text-amber-500 dark:text-amber-400 border-amber-500/50 hover:bg-amber-500 hover:text-white animate-undo-btn"
+                                onClick={handleUndo}
+                                title="تراجع عن الترجمة"
+                                aria-label="Undo translation"
+                            >
+                                <Undo2 size={16} />
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Navigation Controls */}
+                    <button 
+                        className={`scroll-nav-btn ${showTop ? 'visible' : ''}`}
+                        onClick={scrollToTop}
+                        title="أعلى الملف"
+                        aria-label="Scroll to top"
+                    >
+                        <ChevronsUp size={20} />
+                    </button>
+                    
+                    <button 
+                        className={`scroll-nav-btn ${showUp ? 'visible' : ''}`}
+                        onClick={handlePageUp}
+                        title="صفحة لأعلى"
+                        aria-label="Page up"
+                    >
+                        <ChevronUp size={20} />
+                    </button>
+                    
+                    <button 
+                        className={`scroll-nav-btn ${showDown ? 'visible' : ''}`}
+                        onClick={handlePageDown}
+                        title="صفحة لأسفل"
+                        aria-label="Page down"
+                    >
+                        <ChevronDown size={20} />
+                    </button>
+                    
+                    <button 
+                        className={`scroll-nav-btn ${showBottom ? 'visible' : ''}`}
+                        onClick={scrollToBottom}
+                        title="أسفل الملف"
+                        aria-label="Scroll to bottom"
+                    >
+                        <ChevronsDown size={20} />
+                    </button>
+                </div>
             </div>
         </>
     );
