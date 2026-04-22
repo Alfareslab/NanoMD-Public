@@ -17,7 +17,8 @@ const defaultState: AppState = {
     lastSaved: null,
     hasUnsavedChanges: false,
     isEmpty: true,
-    lastActive: new Date().toISOString()
+    lastActive: new Date().toISOString(),
+    isSharedView: false
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);

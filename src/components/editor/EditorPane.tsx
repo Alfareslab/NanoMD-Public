@@ -55,7 +55,7 @@ export const EditorPane: React.FC<EditorPaneProps> = ({ content, onChange, autoF
     };
 
     return (
-        <div className="w-full h-full flex flex-col bg-background/50 border-l border-border transition-colors">
+        <div className="w-full h-full flex flex-col bg-background/50 border-l border-border transition-colors print-hide">
             <div className="flex items-center justify-between px-4 py-2 bg-secondary/30 border-b border-border text-xs font-semibold text-muted">
                 <span>المحرر (Markdown)</span>
                 <span>{content.length} حرف</span>

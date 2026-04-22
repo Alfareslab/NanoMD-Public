@@ -1,21 +1,19 @@
 @echo off
 chcp 65001 >nul
 echo ===================================================
-echo   Deploying NanoMD directly to Cloudflare Pages
+echo   Deploying NanoMD via GitHub to Cloudflare Pages
 echo ===================================================
 
-echo [1/2] Building the project...
-call npm run build
-if %errorlevel% neq 0 (
-    echo ❌ Build failed! Aborting deployment.
-    pause
-    exit /b %errorlevel%
-)
+echo [1/3] Adding changes to Git...
+git add .
 
-echo [2/2] Deploying to Cloudflare Pages...
-call npx wrangler pages deploy dist --project-name=nanomd
+echo [2/3] Committing changes...
+git commit -m "NanoMD v1.2.0 - Print and Share Features Update"
+
+echo [3/3] Pushing to GitHub...
+git push -u origin main
 
 echo ===================================================
-echo   Deployment Process Finished!
+echo   Pushed to GitHub! Cloudflare Pages will build now.
 echo ===================================================
 pause

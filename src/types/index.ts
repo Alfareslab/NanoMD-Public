@@ -13,6 +13,7 @@ export interface AppState {
     hasUnsavedChanges: boolean;
     isEmpty: boolean;
     lastActive: string;
+    isSharedView?: boolean;
 }
 
 export interface ContentVersion {

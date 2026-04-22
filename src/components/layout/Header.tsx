@@ -1,16 +1,62 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Eye, Pencil, Columns2, Focus, ClipboardPaste, Copy, Trash2, Sun, Moon, HelpCircle, Upload } from 'lucide-react';
+import { Eye, Pencil, Columns2, Focus, ClipboardPaste, Copy, Trash2, Sun, Moon, HelpCircle, Upload, Printer, Share2, Loader2, History, X } from 'lucide-react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { htmlToMarkdown, plainTextSmartConvert } from '../../utils/htmlToMarkdown';
 import { ViewMode } from '../../types';
+import { ShareHistory } from '../ui/ShareHistory';
 
-export const Header: React.FC = () => {
+interface HeaderProps {
+    hasContent?: boolean;
+}
+
+export const Header: React.FC<HeaderProps> = ({ hasContent = false }) => {
     const { appState, setAppState } = useAppContext();
     const { theme, cycleTheme } = useTheme();
     const [showClearConfirm, setShowClearConfirm] = useState(false);
     const [selectedText, setSelectedText] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isSharing, setIsSharing] = useState(false);
+    const [showHistoryModal, setShowHistoryModal] = useState(false);
+
+    const handleShare = async () => {
+        if (!appState.content.trim()) return;
+        setIsSharing(true);
+        try {
+            const res = await fetch('/api/share', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: appState.content })
+            });
+            const data = await res.json();
+            if (data.id) {
+                const shareUrl = `${window.location.origin}/?share=${data.id}`;
+                await navigator.clipboard.writeText(shareUrl);
+                
+                const title = appState.content.split('\n').find(line => line.trim().length > 0)?.substring(0, 50).replace(/[#*]/g, '').trim() || 'وثيقة غير مسماة';
+                const contentPreview = appState.content.substring(0, 100);
+                const history = JSON.parse(localStorage.getItem('nano_share_history') || '[]');
+                const newHistory = [{ 
+                    id: data.id, 
+                    url: shareUrl, 
+                    title, 
+                    timestamp: Date.now(),
+                    expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+                    contentPreview
+                }, ...history].slice(0, 10);
+                localStorage.setItem('nano_share_history', JSON.stringify(newHistory));
+                
+                alert('تم إنشاء رابط المشاركة ونسخه للحافظة بنجاح! 🔗');
+            } else {
+                alert(data.error || 'فشل إنشاء رابط المشاركة ❌');
+            }
+        } catch (err) {
+            console.error('Share error:', err);
+            alert('حدث خطأ أثناء الاتصال بالخادم ❌');
+        } finally {
+            setIsSharing(false);
+        }
+    };
 
     // Handle file upload from disk
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -231,26 +277,32 @@ export const Header: React.FC = () => {
                 <div className="hidden md:flex flex-col lg:flex-row items-end lg:items-center gap-2 lg:gap-6 w-full md:w-auto">
 
                     {/* Row 1: View Modes */}
-                    <div className="flex bg-secondary/30 p-1 rounded-xl border border-border">
-                        <NavButton active={appState.viewMode === 'preview'} onClick={() => handleModeChange('preview')} icon={<Eye className="w-4 h-4" />} label="عرض" />
-                        <NavButton active={appState.viewMode === 'editor'} onClick={() => handleModeChange('editor')} icon={<Pencil className="w-4 h-4" />} label="تحرير" />
-                        <NavButton active={appState.viewMode === 'split'} onClick={() => handleModeChange('split')} icon={<Columns2 className="w-4 h-4" />} label="مقسوم" hideMobile />
-                        <NavButton active={appState.viewMode === 'focus'} onClick={() => handleModeChange('focus')} icon={<Focus className="w-4 h-4" />} label="تركيز" />
-                    </div>
+                    {!appState.isSharedView && (
+                        <div className="flex bg-secondary/30 p-1 rounded-xl border border-border">
+                            <NavButton active={appState.viewMode === 'preview'} onClick={() => handleModeChange('preview')} icon={<Eye className="w-4 h-4" />} label="عرض" />
+                            <NavButton active={appState.viewMode === 'editor'} onClick={() => handleModeChange('editor')} icon={<Pencil className="w-4 h-4" />} label="تحرير" />
+                            <NavButton active={appState.viewMode === 'split'} onClick={() => handleModeChange('split')} icon={<Columns2 className="w-4 h-4" />} label="مقسوم" hideMobile />
+                            <NavButton active={appState.viewMode === 'focus'} onClick={() => handleModeChange('focus')} icon={<Focus className="w-4 h-4" />} label="تركيز" />
+                        </div>
+                    )}
 
                     {/* Row 2: Actions */}
                     <div className="flex items-center gap-1">
-                        <NavButton onClick={handlePaste} icon={<ClipboardPaste className="w-4 h-4" />} label="لصق" variant="highlight" />
+                        {!appState.isSharedView && (
+                            <>
+                                <NavButton onClick={handlePaste} icon={<ClipboardPaste className="w-4 h-4" />} label="لصق" variant="highlight" />
 
-                        {/* File Upload */}
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept=".md,.txt,.markdown"
-                            onChange={handleFileUpload}
-                            className="hidden"
-                        />
-                        <NavButton onClick={() => fileInputRef.current?.click()} icon={<Upload className="w-4 h-4" />} label="رفع ملف" />
+                                {/* File Upload */}
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept=".md,.txt,.markdown"
+                                    onChange={handleFileUpload}
+                                    className="hidden"
+                                />
+                                <NavButton onClick={() => fileInputRef.current?.click()} icon={<Upload className="w-4 h-4" />} label="رفع ملف" />
+                            </>
+                        )}
 
                         {/* Minimal Copy trigger for desktop header */}
                         <NavButton
@@ -260,12 +312,37 @@ export const Header: React.FC = () => {
                             disabled={!selectedText}
                         />
 
-                        <NavButton
-                            onClick={handleClear}
-                            icon={<Trash2 className={`w-4 h-4 ${showClearConfirm ? 'text-red-600' : ''}`} />}
-                            label={showClearConfirm ? "تأكيد مسح؟" : "مسح"}
-                            variant="danger"
-                        />
+                        {hasContent && !appState.isSharedView && (
+                            <>
+                                <NavButton
+                                    onClick={handleShare}
+                                    icon={isSharing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
+                                    label="مشاركة"
+                                    variant="highlight"
+                                    disabled={isSharing}
+                                />
+                                <NavButton
+                                    onClick={() => setShowHistoryModal(true)}
+                                    icon={<History className="w-4 h-4" />}
+                                    label="السجل"
+                                />
+                                <NavButton
+                                    onClick={() => window.print()}
+                                    icon={<Printer className="w-4 h-4" />}
+                                    label="طباعة"
+                                    variant="highlight"
+                                />
+                            </>
+                        )}
+
+                        {!appState.isSharedView && (
+                            <NavButton
+                                onClick={handleClear}
+                                icon={<Trash2 className={`w-4 h-4 ${showClearConfirm ? 'text-red-600' : ''}`} />}
+                                label={showClearConfirm ? "تأكيد مسح؟" : "مسح"}
+                                variant="danger"
+                            />
+                        )}
 
                         <div className="w-px h-6 bg-border mx-1 hidden lg:block"></div>
 
@@ -275,6 +352,11 @@ export const Header: React.FC = () => {
 
                 </div>
             </div>
+
+            {/* Share History Modal */}
+            {showHistoryModal && (
+                <ShareHistory onClose={() => setShowHistoryModal(false)} />
+            )}
         </header>
     );
 };

@@ -561,3 +561,47 @@
 .review-table .review-section-1.review-row-done {
     background: color-mix(in srgb, var(--accent-success) 8%, var(--bg-secondary));
 }
+
+/* ============================================
+   Print Styles for Review Table
+   ============================================ */
+@media print {
+    .review-progress,
+    .review-copy-bar,
+    .review-quick-buttons,
+    .review-clear-btn {
+        display: none !important;
+    }
+    
+    .review-table-container {
+        border: none !important;
+        margin: 0 !important;
+    }
+
+    .review-table th,
+    .review-table td {
+        border: 1px solid #ccc !important;
+        padding: 8px !important;
+        color: black !important;
+    }
+
+    .review-input {
+        border: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        color: black !important;
+        box-shadow: none !important;
+        outline: none !important;
+        /* Ensure input prints its value clearly */
+        width: 100% !important;
+    }
+
+    .review-separator-row {
+        background: transparent !important;
+        border-bottom: 2px solid black !important;
+    }
+    
+    .review-separator-cell {
+        color: black !important;
+    }
+}

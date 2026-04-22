@@ -5,3 +5,7 @@ compatibility_date = "2024-12-01"
 
 [site]
 bucket = "./dist"
+
+[[kv_namespaces]]
+binding = "SHARED_CONTENT"
+id = "a74dc98204b945d88d2858471c9a2567"
