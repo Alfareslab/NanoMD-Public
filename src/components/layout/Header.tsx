@@ -279,28 +279,94 @@ export const Header: React.FC<HeaderProps> = ({ hasContent = false }) => {
                         </div>
                     </button>
 
-                    {/* Mobile Only Quick Actions (Top Right on Mobile) */}
-                    <div className="flex md:hidden items-center gap-1">
+                    {/* Mobile Only Quick Actions — fluid icon sizing, auto-distributed */}
+                    <div className="flex md:hidden items-center flex-1 justify-evenly">
+                        {/* Paste */}
+                        {!appState.isSharedView && (
+                            <button
+                                onClick={handlePaste}
+                                title="لصق"
+                                className="mobile-icon-btn text-accent hover:bg-accent/10"
+                            >
+                                <ClipboardPaste className="mobile-icon" />
+                            </button>
+                        )}
+
+                        {/* Upload File */}
+                        {!appState.isSharedView && (
+                            <button
+                                onClick={() => fileInputRef.current?.click()}
+                                title="رفع ملف"
+                                className="mobile-icon-btn text-text-muted hover:text-text-primary hover:bg-bg-secondary"
+                            >
+                                <Upload className="mobile-icon" />
+                            </button>
+                        )}
+
+                        {/* History */}
+                        {!appState.isSharedView && (
+                            <button
+                                onClick={() => setShowHistoryModal(true)}
+                                title="السجل"
+                                className="mobile-icon-btn text-text-muted hover:text-text-primary hover:bg-bg-secondary"
+                            >
+                                <History className="mobile-icon" />
+                            </button>
+                        )}
+
+                        {/* Save Draft (only when has content) */}
+                        {hasContent && !appState.isSharedView && (
+                            <button
+                                onClick={handleLocalSave}
+                                title="حفظ مسودة"
+                                className="mobile-icon-btn text-text-muted hover:text-text-primary hover:bg-bg-secondary"
+                            >
+                                <Save className="mobile-icon" />
+                            </button>
+                        )}
+
+                        {/* Share (only when has content) */}
+                        {hasContent && !appState.isSharedView && (
+                            <button
+                                onClick={handleShare}
+                                disabled={isSharing}
+                                title="مشاركة"
+                                className="mobile-icon-btn text-text-muted hover:text-text-primary hover:bg-bg-secondary disabled:opacity-40"
+                            >
+                                {isSharing
+                                    ? <Loader2 className="mobile-icon animate-spin" />
+                                    : <Share2 className="mobile-icon" />
+                                }
+                            </button>
+                        )}
+
+                        {/* Copy Selected */}
                         <button
                             onClick={selectedText ? handleCopySelected : undefined}
                             disabled={!selectedText}
-                            className={`p-2 rounded-lg transition-colors ${selectedText ? 'text-accent hover:text-accent-hover hover:bg-secondary' : 'text-muted opacity-40 cursor-not-allowed'}`}
                             title="نسخ المحدد"
+                            className={`mobile-icon-btn transition-colors ${selectedText ? 'text-accent hover:bg-accent/10' : 'text-text-muted opacity-30 cursor-not-allowed'}`}
                         >
-                            <Copy className="w-5 h-5" />
+                            <Copy className="mobile-icon" />
                         </button>
-                        <button onClick={cycleTheme} className="p-2 text-muted hover:text-foreground hover:bg-secondary rounded-lg">
+
+                        {/* Theme Toggle */}
+                        <button
+                            onClick={cycleTheme}
+                            title="تغيير الثيم"
+                            className="mobile-icon-btn text-text-muted hover:text-text-primary hover:bg-bg-secondary"
+                        >
                             {getThemeIcon()}
                         </button>
                     </div>
                 </div>
 
-                {/* Desktop / Tablet Controls */}
-                <div className="hidden md:flex flex-col lg:flex-row items-end lg:items-center gap-2 lg:gap-6 w-full md:w-auto">
+                {/* Desktop / Tablet Controls & Mobile Action Bar Container */}
+                <div className="flex flex-col lg:flex-row items-center justify-between lg:justify-end gap-2 lg:gap-6 w-full md:w-auto">
 
-                    {/* Row 1: View Modes */}
+                    {/* Row 1: View Modes (Desktop Only) */}
                     {!appState.isSharedView && (
-                        <div className="flex bg-secondary/30 p-1 rounded-xl border border-border">
+                        <div className="hidden md:flex bg-secondary/30 p-1 rounded-xl border border-border">
                             <NavButton active={appState.viewMode === 'preview'} onClick={() => handleModeChange('preview')} icon={<Eye className="w-4 h-4" />} label="عرض" />
                             <NavButton active={appState.viewMode === 'editor'} onClick={() => handleModeChange('editor')} icon={<Pencil className="w-4 h-4" />} label="تحرير" />
                             <NavButton active={appState.viewMode === 'split'} onClick={() => handleModeChange('split')} icon={<Columns2 className="w-4 h-4" />} label="مقسوم" hideMobile />
@@ -308,8 +374,8 @@ export const Header: React.FC<HeaderProps> = ({ hasContent = false }) => {
                         </div>
                     )}
 
-                    {/* Row 2: Actions */}
-                    <div className="flex items-center gap-1">
+                    {/* Row 2: Actions (Becomes Bottom Bar on Mobile) */}
+                    <div className="mobile-action-bar flex flex-wrap justify-center items-center gap-1 w-full md:w-auto mt-2 md:mt-0">
                         {!appState.isSharedView && (
                             <>
                                 <NavButton onClick={handlePaste} icon={<ClipboardPaste className="w-4 h-4" />} label="لصق" variant="highlight" />
@@ -332,6 +398,7 @@ export const Header: React.FC<HeaderProps> = ({ hasContent = false }) => {
                             icon={<Copy className="w-4 h-4" />}
                             label="نسخ المحدد"
                             disabled={!selectedText}
+                            hideMobile
                         />
 
                         {hasContent && !appState.isSharedView && (

@@ -1,54 +1,248 @@
-import React from 'react';
-import { Eye, Pencil, Menu } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import { Eye, Pencil, ChevronUp, ChevronDown, Undo2, Loader2, FileOutput } from 'lucide-react';
 import { useAppContext } from '../../contexts/AppContext';
 
+// ─────────────────────────────────────────────────────────
+// NavItem: a single polished tab button in the bottom bar
+// ─────────────────────────────────────────────────────────
+interface NavItemProps {
+    icon: React.ReactNode;
+    label: string;
+    active?: boolean;
+    accent?: boolean;     // use accent color even when inactive
+    amber?: boolean;      // amber tint (undo)
+    disabled?: boolean;
+    onClick: () => void;
+}
+
+const NavItem: React.FC<NavItemProps> = ({
+    icon, label, active, accent, amber, disabled, onClick
+}) => {
+    const baseColor = amber
+        ? 'text-amber-500'
+        : accent
+            ? 'text-accent'
+            : active
+                ? 'text-accent'
+                : 'text-text-muted';
+
+    const hoverColor = amber
+        ? 'hover:text-amber-400'
+        : 'hover:text-text-primary';
+
+    const pillBg = active
+        ? 'bg-accent/12 shadow-sm shadow-accent/20'
+        : amber
+            ? 'hover:bg-amber-500/10'
+            : 'hover:bg-bg-secondary/70';
+
+    return (
+        <button
+            onClick={onClick}
+            disabled={disabled}
+            className={`
+                relative flex flex-col items-center justify-center flex-1 min-w-0
+                py-1.5 gap-0.5 transition-all duration-200 ease-out
+                ${baseColor} ${!disabled ? hoverColor : ''}
+                ${disabled ? 'opacity-35 cursor-not-allowed' : 'active:scale-90'}
+                group
+            `}
+        >
+            {/* Icon container with active pill */}
+            <div className={`
+                flex items-center justify-center
+                w-10 h-7 rounded-xl transition-all duration-200
+                ${pillBg}
+            `}>
+                {/* Active accent top-line indicator */}
+                {active && (
+                    <span className="
+                        absolute top-0 left-1/2 -translate-x-1/2
+                        w-6 h-0.5 rounded-full bg-accent
+                        shadow-[0_0_6px_1px_var(--color-accent,#6366f1)]
+                    " />
+                )}
+                {icon}
+            </div>
+
+            {/* Label */}
+            <span className={`
+                text-[8.5px] font-semibold tracking-wide leading-none
+                transition-all duration-200
+                ${active ? 'text-accent' : amber ? 'text-amber-500' : ''}
+            `}>
+                {label}
+            </span>
+        </button>
+    );
+};
+
+// ─────────────────────────────────────────────────────────
+// Vertical Divider
+// ─────────────────────────────────────────────────────────
+const Divider = () => (
+    <div className="flex-shrink-0 w-px mx-0.5 self-stretch my-3 bg-gradient-to-b from-transparent via-border-default to-transparent opacity-60" />
+);
+
+// ─────────────────────────────────────────────────────────
+// MobileNav
+// ─────────────────────────────────────────────────────────
 export const MobileNav: React.FC = () => {
     const { appState, setAppState } = useAppContext();
+    const [isTranslating, setIsTranslating] = useState(false);
+    const [undoHistory, setUndoHistory] = useState<string | null>(null);
 
     const handleTabClick = (view: 'preview' | 'editor') => {
         setAppState(prev => ({ ...prev, viewMode: view }));
     };
 
-    const NavItem = ({
-        active, icon, label, onClick
-    }: {
-        active: boolean; icon: React.ReactNode; label: string; onClick: () => void
-    }) => (
-        <button
-            onClick={onClick}
-            className={`
-        flex flex-col items-center justify-center w-full py-2 gap-1
-        ${active ? 'text-accent' : 'text-muted hover:text-foreground'}
-      `}
-        >
-            <div className={`p-1 rounded-full ${active ? 'bg-accent/10' : ''}`}>
-                {icon}
-            </div>
-            <span className="text-[10px] font-medium">{label}</span>
-        </button>
-    );
+    const scrollBy = useCallback((direction: 'up' | 'down') => {
+        const container = document.getElementById('print-area');
+        if (container) {
+            const amount = container.clientHeight * 0.7;
+            container.scrollBy({ top: direction === 'up' ? -amount : amount, behavior: 'smooth' });
+        }
+    }, []);
+
+    const handleTranslate = async (targetLang: 'ar' | 'en') => {
+        const selection = window.getSelection()?.toString();
+        const textToTranslate = selection || appState.content;
+        if (!textToTranslate.trim()) return;
+
+        setIsTranslating(true);
+        try {
+            const response = await fetch('/api/translate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: textToTranslate, targetLang })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Translation failed');
+
+            setUndoHistory(appState.content);
+            if (selection) {
+                setAppState(prev => ({ ...prev, content: prev.content.replace(selection, data.translated) }));
+            } else {
+                setAppState(prev => ({ ...prev, content: data.translated }));
+            }
+        } catch (err) {
+            console.error('Translation error:', err);
+        } finally {
+            setIsTranslating(false);
+        }
+    };
+
+    const handleUndo = () => {
+        if (undoHistory) {
+            setAppState(prev => ({ ...prev, content: undoHistory }));
+            setUndoHistory(null);
+        }
+    };
+
+    const hasContent = appState.content.trim().length > 0;
+    const isPreview = appState.viewMode === 'preview';
+    const isEditor = appState.viewMode === 'editor' || appState.viewMode === 'split';
 
     return (
-        <nav className="md:hidden fixed bottom-0 z-40 w-full border-t border-border-default bg-bg-primary/95 backdrop-blur-xl pb-safe">
-            <div className="flex items-center justify-around px-2 h-16">
+        <nav className="
+            md:hidden fixed bottom-0 z-50 w-full pb-safe
+            border-t border-border-default/60
+            bg-bg-primary/80 backdrop-blur-2xl
+            shadow-[0_-1px_0_0_rgba(0,0,0,0.04),0_-8px_32px_-4px_rgba(0,0,0,0.08)]
+        ">
+            {/* Subtle top highlight line */}
+            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent pointer-events-none" />
+
+            <div className="flex items-center px-1 h-[62px]">
+
+                {/* ── View: Preview ── */}
                 <NavItem
-                    active={appState.viewMode === 'preview'}
-                    onClick={() => handleTabClick('preview')}
-                    icon={<Eye className="w-5 h-5" />}
+                    icon={<Eye className="w-[18px] h-[18px]" />}
                     label="عرض"
+                    active={isPreview}
+                    onClick={() => handleTabClick('preview')}
                 />
+
+                {/* ── View: Editor ── */}
                 <NavItem
-                    active={appState.viewMode === 'editor' || appState.viewMode === 'split'}
-                    onClick={() => handleTabClick('editor')}
-                    icon={<Pencil className="w-5 h-5" />}
+                    icon={<Pencil className="w-[18px] h-[18px]" />}
                     label="تحرير"
+                    active={isEditor}
+                    onClick={() => handleTabClick('editor')}
                 />
-                <NavItem
-                    active={appState.isBottomSheetOpen}
-                    onClick={() => setAppState(prev => ({ ...prev, isBottomSheetOpen: !prev.isBottomSheetOpen }))}
-                    icon={<Menu className="w-5 h-5" />}
-                    label="أدوات"
-                />
+
+                <Divider />
+
+                {/* ── Scroll Up ── */}
+                {hasContent && (
+                    <NavItem
+                        icon={<ChevronUp className="w-[18px] h-[18px]" />}
+                        label="أعلى"
+                        onClick={() => scrollBy('up')}
+                    />
+                )}
+
+                {/* ── Scroll Down ── */}
+                {hasContent && (
+                    <NavItem
+                        icon={<ChevronDown className="w-[18px] h-[18px]" />}
+                        label="أسفل"
+                        onClick={() => scrollBy('down')}
+                    />
+                )}
+
+                {hasContent && <Divider />}
+
+                {/* ── Translate AR ── */}
+                {hasContent && (
+                    <NavItem
+                        icon={
+                            isTranslating
+                                ? <Loader2 className="w-[16px] h-[16px] animate-spin" />
+                                : <span className="text-[11px] font-black tracking-tight leading-none">AR</span>
+                        }
+                        label="عربي"
+                        accent
+                        disabled={isTranslating}
+                        onClick={() => handleTranslate('ar')}
+                    />
+                )}
+
+                {/* ── Translate EN ── */}
+                {hasContent && (
+                    <NavItem
+                        icon={
+                            isTranslating
+                                ? <Loader2 className="w-[16px] h-[16px] animate-spin" />
+                                : <span className="text-[11px] font-black tracking-tight leading-none">EN</span>
+                        }
+                        label="انجليزي"
+                        accent
+                        disabled={isTranslating}
+                        onClick={() => handleTranslate('en')}
+                    />
+                )}
+
+                {/* ── Undo Translation ── */}
+                {undoHistory && (
+                    <NavItem
+                        icon={<Undo2 className="w-[18px] h-[18px]" />}
+                        label="تراجع"
+                        amber
+                        onClick={handleUndo}
+                    />
+                )}
+
+                {/* ── Export / Copy Menu ── */}
+                {hasContent && <Divider />}
+                {hasContent && (
+                    <NavItem
+                        icon={<FileOutput className="w-[18px] h-[18px]" />}
+                        label="تصدير"
+                        onClick={() => window.dispatchEvent(new Event('open-export-menu'))}
+                    />
+                )}
+
             </div>
         </nav>
     );

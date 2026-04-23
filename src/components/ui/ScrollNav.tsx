@@ -147,8 +147,9 @@ export const ScrollNav = () => {
         }
     };
 
-    // Make ScrollNav always visible if there's undo history or we're translating so user can see the buttons
-    const showControls = isVisible || undoHistory || isTranslating;
+    // Make ScrollNav always visible if there's undo history, we're translating, or there is content (to show translation buttons)
+    const hasContent = appState.content.trim().length > 0;
+    const showControls = isVisible || undoHistory || isTranslating || hasContent;
     if (!showControls) return null;
 
     return (

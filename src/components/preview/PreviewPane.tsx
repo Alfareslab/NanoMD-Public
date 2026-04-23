@@ -177,7 +177,7 @@ const rehypePlugins: any[] = [[rehypeSanitize, sanitizeSchema], rehypeHighlight]
  */
 export const PreviewPane: React.FC<PreviewPaneProps> = React.memo(({ content }) => {
     return (
-        <div id="print-area" className="w-full h-full overflow-y-auto bg-bg-primary">
+        <div id="print-area" className="preview-pane w-full h-full overflow-y-auto">
             <div className="preview-content max-w-3xl mx-auto pb-24">
                 <ReactMarkdown
                     remarkPlugins={remarkPlugins}
