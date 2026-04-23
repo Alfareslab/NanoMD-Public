@@ -362,17 +362,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    /* Fluid padding: from 6px (mobile) to 10px (tablet) */
-    padding: clamp(6px, 1.5vw, 10px);
-    border-radius: 10px;
+    /* Fluid padding: from 4px (mobile) to 8px (tablet) to save space */
+    padding: clamp(4px, 1.2vw, 8px);
+    border-radius: 8px;
     transition: background-color 0.15s ease, color 0.15s ease;
     flex-shrink: 0;
 }
 
 .mobile-icon {
-    /* Fluid icon size: from 18px (small mobile) to 24px (tablet) */
-    width: clamp(18px, 4.5vw, 24px);
-    height: clamp(18px, 4.5vw, 24px);
+    /* Fluid icon size: from 16px (small mobile) to 20px (tablet) */
+    width: clamp(16px, 4vw, 20px);
+    height: clamp(16px, 4vw, 20px);
 }
 
 /* Mobile: Add bottom padding to prevent content hidden under MobileNav */
@@ -400,5 +400,13 @@
   /* Hide the action bar row inside the header on mobile (it's in MobileNav now) */
   .mobile-action-bar {
       display: none !important;
+  }
+
+  /* Hide visible scrollbars on mobile to prevent overlapping */
+  * {
+      scrollbar-width: none; /* Firefox */
+  }
+  ::-webkit-scrollbar {
+      display: none !important; /* Chrome, Safari, Edge */
   }
 }

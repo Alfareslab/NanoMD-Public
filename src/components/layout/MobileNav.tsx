@@ -7,17 +7,47 @@ import { useAppContext } from '../../contexts/AppContext';
 // ─────────────────────────────────────────────────────────
 interface NavItemProps {
     icon: React.ReactNode;
-    label: string;
+    label?: string;
     active?: boolean;
     accent?: boolean;     // use accent color even when inactive
     amber?: boolean;      // amber tint (undo)
     disabled?: boolean;
-    onClick: () => void;
+    onClick?: (e?: any) => void;
+    onLongPress?: () => void;
 }
 
 const NavItem: React.FC<NavItemProps> = ({
-    icon, label, active, accent, amber, disabled, onClick
+    icon, label, active, accent, amber, disabled, onClick, onLongPress
 }) => {
+    const timerRef = React.useRef<NodeJS.Timeout>();
+    const isLongPress = React.useRef(false);
+
+    const startPress = () => {
+        isLongPress.current = false;
+        if (onLongPress && !disabled) {
+            timerRef.current = setTimeout(() => {
+                isLongPress.current = true;
+                if(window.navigator && window.navigator.vibrate) window.navigator.vibrate(50);
+                onLongPress();
+            }, 500);
+        }
+    };
+
+    const cancelPress = () => {
+        if (timerRef.current) {
+            clearTimeout(timerRef.current);
+        }
+    };
+
+    const handleClick = (e: React.MouseEvent) => {
+        if (isLongPress.current) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
+        if (onClick) onClick(e);
+    };
+
     const baseColor = amber
         ? 'text-amber-500'
         : accent
@@ -38,7 +68,14 @@ const NavItem: React.FC<NavItemProps> = ({
 
     return (
         <button
-            onClick={onClick}
+            onClick={handleClick}
+            onTouchStart={startPress}
+            onTouchEnd={cancelPress}
+            onTouchMove={cancelPress}
+            onMouseDown={startPress}
+            onMouseUp={cancelPress}
+            onMouseLeave={cancelPress}
+            onContextMenu={(e) => { if(onLongPress) e.preventDefault(); }}
             disabled={disabled}
             className={`
                 relative flex flex-col items-center justify-center flex-1 min-w-0
@@ -66,13 +103,15 @@ const NavItem: React.FC<NavItemProps> = ({
             </div>
 
             {/* Label */}
-            <span className={`
-                text-[8.5px] font-semibold tracking-wide leading-none
-                transition-all duration-200
-                ${active ? 'text-accent' : amber ? 'text-amber-500' : ''}
-            `}>
-                {label}
-            </span>
+            {label && (
+                <span className={`
+                    text-[8.5px] font-semibold tracking-wide leading-none
+                    transition-all duration-200
+                    ${active ? 'text-accent' : amber ? 'text-amber-500' : ''}
+                `}>
+                    {label}
+                </span>
+            )}
         </button>
     );
 };
@@ -91,6 +130,7 @@ export const MobileNav: React.FC = () => {
     const { appState, setAppState } = useAppContext();
     const [isTranslating, setIsTranslating] = useState(false);
     const [undoHistory, setUndoHistory] = useState<string | null>(null);
+    const [targetLang, setTargetLang] = useState<'ar' | 'en'>('ar');
 
     const handleTabClick = (view: 'preview' | 'editor') => {
         setAppState(prev => ({ ...prev, viewMode: view }));
@@ -193,33 +233,19 @@ export const MobileNav: React.FC = () => {
 
                 {hasContent && <Divider />}
 
-                {/* ── Translate AR ── */}
+                {/* ── Smart Translate ── */}
                 {hasContent && (
                     <NavItem
                         icon={
                             isTranslating
                                 ? <Loader2 className="w-[16px] h-[16px] animate-spin" />
-                                : <span className="text-[11px] font-black tracking-tight leading-none">AR</span>
+                                : <span className="text-[12px] font-black tracking-tight leading-none">{targetLang === 'ar' ? 'AR' : 'EN'}</span>
                         }
-                        label="عربي"
+                        label="ترجمة"
                         accent
                         disabled={isTranslating}
-                        onClick={() => handleTranslate('ar')}
-                    />
-                )}
-
-                {/* ── Translate EN ── */}
-                {hasContent && (
-                    <NavItem
-                        icon={
-                            isTranslating
-                                ? <Loader2 className="w-[16px] h-[16px] animate-spin" />
-                                : <span className="text-[11px] font-black tracking-tight leading-none">EN</span>
-                        }
-                        label="انجليزي"
-                        accent
-                        disabled={isTranslating}
-                        onClick={() => handleTranslate('en')}
+                        onClick={() => handleTranslate(targetLang)}
+                        onLongPress={() => setTargetLang(prev => prev === 'ar' ? 'en' : 'ar')}
                     />
                 )}
 

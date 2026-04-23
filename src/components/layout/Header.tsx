@@ -253,12 +253,12 @@ export const Header: React.FC<HeaderProps> = ({ hasContent = false }) => {
                 <div className="flex items-center gap-2 flex-shrink-0 w-full md:w-auto justify-between md:justify-start">
                     <button
                         onClick={() => setAppState(prev => ({ ...prev, content: '', viewMode: 'preview' }))}
-                        className="flex items-center focus:outline-none group"
+                        className="flex items-center focus:outline-none group flex-shrink-0"
                         title="العودة للصفحة الرئيسية"
                     >
-                        <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-accent/5 border border-accent/20 hover:border-accent/40 transition-all duration-500 group-hover:shadow-xl group-hover:shadow-accent/10">
-                            {/* Refined Concept #1: Sophisticated Integrated N + Notebook */}
-                            <div className="flex items-center justify-center text-accent">
+                        <div className="flex items-center gap-1 md:gap-3 px-3 md:px-4 py-2 md:py-2.5 rounded-xl md:rounded-2xl bg-accent/5 border border-accent/20 hover:border-accent/40 transition-all duration-500 group-hover:shadow-xl group-hover:shadow-accent/10">
+                            {/* SVG Icon - hidden on mobile to save space */}
+                            <div className="hidden md:flex items-center justify-center text-accent">
                                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="transition-transform duration-700 group-hover:scale-110">
                                     {/* Notebook Body */}
                                     <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="2.5" />
@@ -271,10 +271,13 @@ export const Header: React.FC<HeaderProps> = ({ hasContent = false }) => {
                                 </svg>
                             </div>
 
-                            {/* Refined High-Contrast Wordmark - Enforce LTR to prevent reversal in RTL mode */}
-                            <span className="font-display font-black text-2xl tracking-tighter uppercase flex items-center leading-none" dir="ltr">
-                                <span className="text-accent">Nano</span>
-                                <span className="text-accent/90 ml-0.5">MD</span>
+                            {/* Text Logo: 'NMD' on mobile, 'NanoMD' on desktop */}
+                            <span className="font-display font-black text-xl md:text-2xl tracking-tighter uppercase flex items-center leading-none" dir="ltr">
+                                <span className="md:hidden text-accent">NMD</span>
+                                <span className="hidden md:flex">
+                                    <span className="text-accent">Nano</span>
+                                    <span className="text-accent/90 ml-0.5">MD</span>
+                                </span>
                             </span>
                         </div>
                     </button>
