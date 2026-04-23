@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Eye, Pencil, Columns2, Focus, ClipboardPaste, Copy, Trash2, Sun, Moon, HelpCircle, Upload, Printer, Share2, Loader2, History, Save } from 'lucide-react';
+import { Eye, Pencil, Columns2, Focus, ClipboardPaste, Copy, Trash2, Sun, Moon, HelpCircle, Upload, Printer, Share2, Loader2, History, Save, Sparkles } from 'lucide-react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { htmlToMarkdown, plainTextSmartConvert } from '../../utils/htmlToMarkdown';
 import { ViewMode } from '../../types';
 import { ShareHistory } from '../ui/ShareHistory';
+import { WhatsNewModal } from '../ui/WhatsNewModal';
+import { HelpAboutModal } from '../ui/HelpAboutModal';
 
 interface HeaderProps {
     hasContent?: boolean;
@@ -18,6 +20,8 @@ export const Header: React.FC<HeaderProps> = ({ hasContent = false }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isSharing, setIsSharing] = useState(false);
     const [showHistoryModal, setShowHistoryModal] = useState(false);
+    const [showWhatsNewModal, setShowWhatsNewModal] = useState(false);
+    const [showHelpModal, setShowHelpModal] = useState(false);
 
     const handleLocalSave = () => {
         if (!appState.content.trim()) return;
@@ -164,24 +168,7 @@ export const Header: React.FC<HeaderProps> = ({ hasContent = false }) => {
     };
 
     const handleHelp = () => {
-        const helpMarkdown = `# 👋 مرحباً بك في NanoMD
-
-**NanoMD** هو محرر نصوص (Markdown) خفيف، سريع، ومصمم خصيصاً لراحتك. لا يحتاج لإنترنت، ويعمل بالكامل داخل متصفحك!
-
-## ✨ الميزات الأساسية:
-- 🔄 **تحديث مباشر:** اكتب الكود هنا وشاهده يتحول لتنسيق جميل فوراً.
-- 🌓 **وضع التركيز (Focus Mode):** إخفاء كل المشتتات والتركيز فقط على الكتابة.
-- 💾 **حفظ تلقائي:** لا تقلق، كل ما تكتبه يُحفظ تلقائياً في متصفحك.
-- 🔀 **دعم كامل للغتين:** يعمل بكفاءة مع العربية (من اليمين لليسار) والإنجليزية.
-- 🎨 **ثيمات متعددة:** اختر الألوان التي تريح عينك من قائمة الثيمات.
-
-## 🚀 كيف تبدأ؟
-جرب كتابة بعض النصوص الآن! يمكنك استخدام العناوين بوضع \`#\` قبل النص، أو القوائم بوضع \`-\`، وسيتم تحويلها فوراً.
-
----
-*صُنع بحب للإنتاجية والسرعة ⚡*`;
-
-        setAppState(prev => ({ ...prev, content: helpMarkdown, viewMode: 'split' }));
+        setShowHelpModal(true);
     };
 
     const handleClear = () => {
@@ -217,36 +204,39 @@ export const Header: React.FC<HeaderProps> = ({ hasContent = false }) => {
     };
 
     const NavButton = ({
-        active, icon, label, onClick, variant = 'default', hideMobile = false, disabled = false
+        active, icon, label, onClick, variant = 'default', hideMobile = false, disabled = false, iconOnly = false
     }: {
-        active?: boolean; icon: React.ReactNode; label: string; onClick: () => void; variant?: 'default' | 'danger' | 'highlight'; hideMobile?: boolean; disabled?: boolean
+        active?: boolean; icon: React.ReactNode; label: string; onClick: () => void;
+        variant?: 'default' | 'danger' | 'highlight'; hideMobile?: boolean; disabled?: boolean; iconOnly?: boolean;
     }) => (
         <button
             onClick={disabled ? undefined : onClick}
             disabled={disabled}
             title={label}
             className={`
-        flex items-center justify-center gap-1.5 h-9 px-4 rounded-xl text-[13px] font-semibold transition-all duration-300
-        ${hideMobile ? 'hidden sm:flex' : 'flex'}
+        flex items-center justify-center gap-1.5 h-8 px-2 rounded-lg text-[12px] font-semibold transition-all duration-200 shrink-0
+        ${hideMobile ? 'hidden md:flex' : 'flex'}
         ${disabled ? 'opacity-30 cursor-not-allowed' :
                     active
-                        ? 'bg-accent text-white shadow-lg shadow-accent/20 scale-105 active:scale-95'
+                        ? 'bg-accent text-white shadow-md shadow-accent/20 scale-105 active:scale-95'
                         : variant === 'danger'
                             ? 'hover:bg-accent-danger/10 text-accent-danger border border-transparent hover:border-accent-danger/20'
                             : variant === 'highlight'
-                                ? 'bg-accent/10 text-accent hover:bg-accent/20 border border-accent/10 hover:border-accent/30 shadow-sm'
+                                ? 'bg-accent/10 text-accent hover:bg-accent/20 border border-accent/10 hover:border-accent/30'
                                 : 'hover:bg-bg-tertiary/50 text-text-secondary hover:text-text-primary border border-transparent hover:border-border-default'
-                }
+            }
       `}
         >
             {icon}
-            <span className="hidden lg:inline">{label}</span>
-            {/* Show labels on tablet for the top row only via CSS if needed, but spec says icon only on tablet. The hidden lg:inline achieves icon only on <1024px */}
+            {!iconOnly && <span className="hidden lg:inline">{label}</span>}
         </button>
     );
 
     return (
         <header className="sticky top-0 z-40 w-full border-b border-border-default bg-bg-primary/70 backdrop-blur-[20px] transition-all duration-300">
+            {/* Hidden file input for upload functionality */}
+            <input ref={fileInputRef} type="file" accept=".md,.txt,.markdown" onChange={handleFileUpload} className="hidden" />
+            
             <div className="max-w-7xl mx-auto px-4 sm:px-6 h-auto min-h-[60px] py-3 flex flex-col md:flex-row items-center justify-between gap-4">
 
                 {/* Logo */}
@@ -282,175 +272,104 @@ export const Header: React.FC<HeaderProps> = ({ hasContent = false }) => {
                         </div>
                     </button>
 
-                    {/* Mobile Only Quick Actions — fluid icon sizing, auto-distributed */}
-                    <div className="flex md:hidden items-center flex-1 justify-evenly">
+                    {/* Mobile Only Quick Actions — scrollable flex to fit all icons without overcrowding */}
+                    <div className="flex md:hidden items-center flex-1 overflow-x-auto gap-2 px-1 scrollbar-hide snap-x">
                         {/* Paste */}
                         {!appState.isSharedView && (
-                            <button
-                                onClick={handlePaste}
-                                title="لصق"
-                                className="mobile-icon-btn text-accent hover:bg-accent/10"
-                            >
+                            <button onClick={handlePaste} title="لصق" className="mobile-icon-btn shrink-0 text-accent hover:bg-accent/10 snap-start">
                                 <ClipboardPaste className="mobile-icon" />
                             </button>
                         )}
 
-                        {/* Upload File */}
+                        {/* Upload */}
                         {!appState.isSharedView && (
-                            <button
-                                onClick={() => fileInputRef.current?.click()}
-                                title="رفع ملف"
-                                className="mobile-icon-btn text-text-muted hover:text-text-primary hover:bg-bg-secondary"
-                            >
+                            <button onClick={() => fileInputRef.current?.click()} title="رفع ملف" className="mobile-icon-btn shrink-0 text-text-muted hover:text-text-primary hover:bg-bg-secondary snap-start">
                                 <Upload className="mobile-icon" />
+                            </button>
+                        )}
+
+                        {/* Save Draft */}
+                        {hasContent && !appState.isSharedView && (
+                            <button onClick={handleLocalSave} title="حفظ مسودة" className="mobile-icon-btn shrink-0 text-text-muted hover:text-text-primary hover:bg-bg-secondary snap-start">
+                                <Save className="mobile-icon" />
+                            </button>
+                        )}
+
+                        {/* Share */}
+                        {hasContent && !appState.isSharedView && (
+                            <button onClick={handleShare} disabled={isSharing} title="مشاركة" className="mobile-icon-btn shrink-0 text-text-muted hover:text-text-primary hover:bg-bg-secondary disabled:opacity-40 snap-start">
+                                {isSharing ? <Loader2 className="mobile-icon animate-spin" /> : <Share2 className="mobile-icon" />}
                             </button>
                         )}
 
                         {/* History */}
                         {!appState.isSharedView && (
-                            <button
-                                onClick={() => setShowHistoryModal(true)}
-                                title="السجل"
-                                className="mobile-icon-btn text-text-muted hover:text-text-primary hover:bg-bg-secondary"
-                            >
+                            <button onClick={() => setShowHistoryModal(true)} title="السجل" className="mobile-icon-btn shrink-0 text-text-muted hover:text-text-primary hover:bg-bg-secondary snap-start">
                                 <History className="mobile-icon" />
                             </button>
                         )}
 
-                        {/* Save Draft (only when has content) */}
-                        {hasContent && !appState.isSharedView && (
-                            <button
-                                onClick={handleLocalSave}
-                                title="حفظ مسودة"
-                                className="mobile-icon-btn text-text-muted hover:text-text-primary hover:bg-bg-secondary"
-                            >
-                                <Save className="mobile-icon" />
-                            </button>
-                        )}
+                        <div className="w-px h-5 bg-border-default/50 shrink-0"></div>
 
-                        {/* Share (only when has content) */}
-                        {hasContent && !appState.isSharedView && (
-                            <button
-                                onClick={handleShare}
-                                disabled={isSharing}
-                                title="مشاركة"
-                                className="mobile-icon-btn text-text-muted hover:text-text-primary hover:bg-bg-secondary disabled:opacity-40"
-                            >
-                                {isSharing
-                                    ? <Loader2 className="mobile-icon animate-spin" />
-                                    : <Share2 className="mobile-icon" />
-                                }
-                            </button>
-                        )}
-
-                        {/* Copy Selected */}
-                        <button
-                            onClick={selectedText ? handleCopySelected : undefined}
-                            disabled={!selectedText}
-                            title="نسخ المحدد"
-                            className={`mobile-icon-btn transition-colors ${selectedText ? 'text-accent hover:bg-accent/10' : 'text-text-muted opacity-30 cursor-not-allowed'}`}
-                        >
-                            <Copy className="mobile-icon" />
+                        {/* What's New */}
+                        <button onClick={() => setShowWhatsNewModal(true)} title="ما الجديد؟" className="mobile-icon-btn shrink-0 text-accent hover:bg-accent/10 snap-start">
+                            <Sparkles className="mobile-icon" />
                         </button>
-
-                        {/* Theme Toggle */}
-                        <button
-                            onClick={cycleTheme}
-                            title="تغيير الثيم"
-                            className="mobile-icon-btn text-text-muted hover:text-text-primary hover:bg-bg-secondary"
-                        >
+                        
+                        {/* Theme */}
+                        <button onClick={cycleTheme} title="تغيير الثيم" className="mobile-icon-btn shrink-0 text-text-muted hover:text-text-primary hover:bg-bg-secondary snap-start">
                             {getThemeIcon()}
                         </button>
                     </div>
                 </div>
 
-                {/* Desktop / Tablet Controls & Mobile Action Bar Container */}
-                <div className="flex flex-col lg:flex-row items-center justify-between lg:justify-end gap-2 lg:gap-6 w-full md:w-auto">
+                {/* Desktop controls — single row, no wrap */}
+                <div className="hidden md:flex items-center gap-1 flex-nowrap">
 
-                    {/* Row 1: View Modes (Desktop Only) */}
+                    {/* View Mode Switcher */}
                     {!appState.isSharedView && (
-                        <div className="hidden md:flex bg-secondary/30 p-1 rounded-xl border border-border">
-                            <NavButton active={appState.viewMode === 'preview'} onClick={() => handleModeChange('preview')} icon={<Eye className="w-4 h-4" />} label="عرض" />
-                            <NavButton active={appState.viewMode === 'editor'} onClick={() => handleModeChange('editor')} icon={<Pencil className="w-4 h-4" />} label="تحرير" />
-                            <NavButton active={appState.viewMode === 'split'} onClick={() => handleModeChange('split')} icon={<Columns2 className="w-4 h-4" />} label="مقسوم" hideMobile />
-                            <NavButton active={appState.viewMode === 'focus'} onClick={() => handleModeChange('focus')} icon={<Focus className="w-4 h-4" />} label="تركيز" />
+                        <div className="flex bg-bg-secondary/60 p-0.5 rounded-lg border border-border-default shrink-0 mr-1">
+                            <NavButton active={appState.viewMode === 'preview'} onClick={() => handleModeChange('preview')} icon={<Eye className="w-3.5 h-3.5" />} label="عرض" />
+                            <NavButton active={appState.viewMode === 'editor'} onClick={() => handleModeChange('editor')} icon={<Pencil className="w-3.5 h-3.5" />} label="تحرير" />
+                            <NavButton active={appState.viewMode === 'split'} onClick={() => handleModeChange('split')} icon={<Columns2 className="w-3.5 h-3.5" />} label="مقسوم" />
+                            <NavButton active={appState.viewMode === 'focus'} onClick={() => handleModeChange('focus')} icon={<Focus className="w-3.5 h-3.5" />} label="تركيز" />
                         </div>
                     )}
 
-                    {/* Row 2: Actions (Becomes Bottom Bar on Mobile) */}
-                    <div className="mobile-action-bar flex flex-wrap justify-center items-center gap-1 w-full md:w-auto mt-2 md:mt-0">
-                        {!appState.isSharedView && (
-                            <>
-                                <NavButton onClick={handlePaste} icon={<ClipboardPaste className="w-4 h-4" />} label="لصق" variant="highlight" />
+                    <div className="w-px h-5 bg-border-default mx-1 shrink-0" />
 
-                                {/* File Upload */}
-                                <input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    accept=".md,.txt,.markdown"
-                                    onChange={handleFileUpload}
-                                    className="hidden"
-                                />
-                                <NavButton onClick={() => fileInputRef.current?.click()} icon={<Upload className="w-4 h-4" />} label="رفع ملف" />
-                            </>
-                        )}
+                    {/* Action buttons */}
+                    {!appState.isSharedView && (
+                        <>
+                            <NavButton onClick={handlePaste} icon={<ClipboardPaste className="w-3.5 h-3.5" />} label="لصق" variant="highlight" />
+                            <NavButton onClick={() => fileInputRef.current?.click()} icon={<Upload className="w-3.5 h-3.5" />} label="رفع ملف" iconOnly />
+                            <NavButton onClick={handleCopySelected} icon={<Copy className="w-3.5 h-3.5" />} label="نسخ" disabled={!selectedText} iconOnly />
+                        </>
+                    )}
 
-                        {/* Minimal Copy trigger for desktop header */}
-                        <NavButton
-                            onClick={handleCopySelected}
-                            icon={<Copy className="w-4 h-4" />}
-                            label="نسخ المحدد"
-                            disabled={!selectedText}
-                            hideMobile
-                        />
+                    {hasContent && !appState.isSharedView && (
+                        <>
+                            <NavButton onClick={handleLocalSave} icon={<Save className="w-3.5 h-3.5" />} label="حفظ" iconOnly />
+                            <NavButton onClick={handleShare} icon={isSharing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Share2 className="w-3.5 h-3.5" />} label="مشاركة" variant="highlight" disabled={isSharing} iconOnly />
+                            <NavButton onClick={() => window.print()} icon={<Printer className="w-3.5 h-3.5" />} label="طباعة" iconOnly />
+                        </>
+                    )}
 
-                        {hasContent && !appState.isSharedView && (
-                            <>
-                                <NavButton
-                                    onClick={handleLocalSave}
-                                    icon={<Save className="w-4 h-4" />}
-                                    label="حفظ مسودة"
-                                />
-                                <NavButton
-                                    onClick={handleShare}
-                                    icon={isSharing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
-                                    label="مشاركة"
-                                    variant="highlight"
-                                    disabled={isSharing}
-                                />
-                                <NavButton
-                                    onClick={() => window.print()}
-                                    icon={<Printer className="w-4 h-4" />}
-                                    label="طباعة"
-                                    variant="highlight"
-                                />
-                            </>
-                        )}
+                    {!appState.isSharedView && (
+                        <>
+                            <NavButton onClick={() => setShowHistoryModal(true)} icon={<History className="w-3.5 h-3.5" />} label="السجل" iconOnly />
+                            <NavButton onClick={handleClear} icon={<Trash2 className={`w-3.5 h-3.5 ${showClearConfirm ? 'text-red-500' : ''}`} />} label={showClearConfirm ? 'تأكيد؟' : 'مسح'} variant="danger" iconOnly />
+                        </>
+                    )}
 
-                        {!appState.isSharedView && (
-                            <NavButton
-                                onClick={() => setShowHistoryModal(true)}
-                                icon={<History className="w-4 h-4" />}
-                                label="السجل"
-                            />
-                        )}
+                    <div className="w-px h-5 bg-border-default mx-1 shrink-0" />
 
-                        {!appState.isSharedView && (
-                            <NavButton
-                                onClick={handleClear}
-                                icon={<Trash2 className={`w-4 h-4 ${showClearConfirm ? 'text-red-600' : ''}`} />}
-                                label={showClearConfirm ? "تأكيد مسح؟" : "مسح"}
-                                variant="danger"
-                            />
-                        )}
-
-                        <div className="w-px h-6 bg-border mx-1 hidden lg:block"></div>
-
-                        <NavButton onClick={cycleTheme} icon={getThemeIcon()} label={getThemeLabel(theme)} hideMobile />
-                        <NavButton onClick={handleHelp} icon={<HelpCircle className="w-4 h-4" />} label="مساعدة" hideMobile />
-                    </div>
-
+                    {/* Right-side utility buttons */}
+                    <NavButton onClick={() => setShowWhatsNewModal(true)} icon={<Sparkles className="w-3.5 h-3.5" />} label="ما الجديد؟" variant="highlight" />
+                    <NavButton onClick={cycleTheme} icon={getThemeIcon()} label={getThemeLabel(theme)} />
+                    <NavButton onClick={handleHelp} icon={<HelpCircle className="w-3.5 h-3.5" />} label="مساعدة" />
                 </div>
+
             </div>
 
             {/* Share History Modal */}
@@ -463,6 +382,18 @@ export const Header: React.FC<HeaderProps> = ({ hasContent = false }) => {
                     }}
                 />
             )}
+
+            {/* What's New Modal */}
+            <WhatsNewModal 
+                isOpen={showWhatsNewModal} 
+                onClose={() => setShowWhatsNewModal(false)} 
+            />
+
+            {/* Help / About Modal */}
+            <HelpAboutModal 
+                isOpen={showHelpModal} 
+                onClose={() => setShowHelpModal(false)} 
+            />
         </header>
     );
 };
