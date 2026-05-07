@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NanoMD UI Viewport Lab</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f8f0e4;
+      --panel: #fffaf3;
+      --panel-soft: #efe1cf;
+      --border: #dcc6aa;
+      --text: #3e2d1d;
+      --muted: #8a725d;
+      --accent: #b98248;
+      --accent-strong: #8f5d30;
+      --danger: #ef4444;
+      --shadow: 0 18px 48px rgba(111, 79, 48, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(185, 130, 72, 0.14), transparent 38rem),
+        linear-gradient(135deg, #fffaf3 0%, #f3e6d4 46%, #e6d5bf 100%);
+      color: var(--text);
+      font-family: "Outfit", "Inter", sans-serif;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .lab-shell {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 24px;
+    }
+
+    .lab-toolbar {
+      display: grid;
+      grid-template-columns: minmax(240px, 1fr) auto auto auto auto;
+      gap: 16px;
+      align-items: center;
+      padding: 16px;
+      border: 1px solid rgba(220, 198, 170, 0.78);
+      border-radius: 16px;
+      background: rgba(255, 250, 243, 0.78);
+      box-shadow: 0 20px 50px rgba(111, 79, 48, 0.08);
+      backdrop-filter: blur(20px);
+    }
+
+    .lab-title h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: #2D2318;
+      letter-spacing: -0.01em;
+    }
+
+    .lab-title p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(239, 225, 207, 0.52);
+    }
+
+    .control-button {
+      min-height: 36px;
+      padding: 0 16px;
+      border: 0;
+      border-radius: 9px;
+      color: var(--muted);
+      font-weight: 500;
+      font-size: 13px;
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .control-button:hover:not(:disabled) {
+      color: var(--accent-strong);
+      background: rgba(185, 130, 72, 0.12);
+    }
+
+    .control-button.active {
+      color: #FFFFFF;
+      background: var(--accent);
+      box-shadow: 0 4px 14px rgba(143, 93, 48, 0.26);
+    }
+
+    .control-button:active:not(:disabled) {
+      transform: scale(0.96);
+    }
+
+    .control-button:disabled {
+      opacity: 0.42;
+      cursor: not-allowed;
+    }
+
+    .meta-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 156px;
+      padding: 4px 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .meta-panel strong {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .lab-note {
+      margin: -8px 2px 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    .lab-note strong {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .stage {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+    }
+
+    .device-frame {
+      width: var(--frame-width, 1440px);
+      height: var(--frame-height, 900px);
+      max-width: 100%;
+      max-height: calc(100vh - 122px);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: #FFFFFF;
+      box-shadow: 0 24px 64px rgba(111, 79, 48, 0.16);
+      transition: width 0.22s ease, height 0.22s ease, border-radius 0.22s ease;
+    }
+
+    .device-frame.mobile {
+      border-radius: 28px;
+    }
+
+    .preview-frame {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border: 0;
+      background: transparent;
+    }
+
+    .lab-status {
+      min-height: 20px;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .lab-status.error {
+      color: var(--danger);
+    }
+
+    @media (max-width: 980px) {
+      .lab-toolbar {
+        grid-template-columns: 1fr;
+        align-items: stretch;
+      }
+
+      .control-group {
+        overflow-x: auto;
+      }
+
+      .meta-panel {
+        min-width: 0;
+      }
+
+      .device-frame {
+        max-height: calc(100vh - 248px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="lab-shell">
+    <section class="lab-toolbar" aria-label="Viewport lab controls">
+      <div class="lab-title">
+        <h1>NanoMD UI Viewport Lab</h1>
+        <p>Static preview tool for the current built interface in dist.</p>
+      </div>
+
+      <div class="control-group" aria-label="Viewport size">
+        <button class="control-button active" type="button" data-viewport="desktop">Desktop</button>
+        <button class="control-button" type="button" data-viewport="tablet">Tablet</button>
+        <button class="control-button" type="button" data-viewport="mobile">Mobile</button>
+      </div>
+
+      <div class="control-group" aria-label="Content state">
+        <button class="control-button active" type="button" data-content="empty">Empty State</button>
+        <button class="control-button" type="button" data-content="sample">Sample Content</button>
+        <button class="control-button" type="button" data-content="long">Long Content</button>
+      </div>
+
+      <div class="control-group" aria-label="Preview actions">
+        <button class="control-button" type="button" id="reload-preview">Reload</button>
+      </div>
+
+      <div class="meta-panel" aria-live="polite">
+        <span>Viewport: <strong id="viewport-label">Desktop</strong></span>
+        <span>Frame: <strong id="size-label">1440 x 900</strong></span>
+      </div>
+    </section>
+
+    <p class="lab-note">
+      This lab reads the current <strong>dist</strong> bundle only. Run a fresh build when you need it to reflect newer application code.
+    </p>
+
+    <section class="stage" aria-label="Application preview stage">
+      <div class="device-frame" id="device-frame">
+        <iframe class="preview-frame" id="preview-frame" title="NanoMD built application preview"></iframe>
+      </div>
+    </section>
+
+    <div class="lab-status" id="lab-status">Loading current dist assets.</div>
+  </main>
+
+  <script>
+    const PREVIEW_PAGE_PATH = "ui-viewport-preview.html";
+
+    const viewportProfiles = {
+      desktop: { label: "Desktop", width: 1440, height: 900, className: "" },
+      tablet: { label: "Tablet", width: 834, height: 1112, className: "" },
+      mobile: { label: "Mobile", width: 390, height: 844, className: "mobile" }
+    };
+
+    const frame = document.getElementById("preview-frame");
+    const deviceFrame = document.getElementById("device-frame");
+    const viewportLabel = document.getElementById("viewport-label");
+    const sizeLabel = document.getElementById("size-label");
+    const statusLabel = document.getElementById("lab-status");
+    const reloadButton = document.getElementById("reload-preview");
+    const viewportButtons = Array.from(document.querySelectorAll("[data-viewport]"));
+    const contentButtons = Array.from(document.querySelectorAll("[data-content]"));
+
+    let activeViewport = "desktop";
+    let activeContent = "empty";
+
+    const contentFixtures = {
+      empty: "",
+      sample: `# NanoMD Button Layout Sample\n\nThis short Markdown document is used to test the post-content toolbar state.\n\n## Expected UI\n\n- Save, share, print, export, translate, and scroll controls can appear.\n- Header controls should remain readable in desktop, tablet, and mobile frames.\n- Mobile top and bottom bars should not overlap the preview content.\n\n| # | Item | Recommendation | Decision |\n|---|------|----------------|----------|\n| 1 | Header action order | Keep primary actions visible first | |\n| 2 | Mobile bottom bar | Avoid overcrowding after content loads | |\n`,
+      long: `# NanoMD Long Content Layout Sample\n\nThis long Markdown document is used to test scroll behavior, fixed bars, mobile spacing, and post-content actions.\n\n## Toolbar Checks\n\n- Desktop should keep the header controls in one clean row.\n- Tablet should preserve readable spacing without wrapping awkwardly.\n- Mobile should keep key actions reachable without hiding content.\n\n## Review Table\n\n| # | Item | Recommendation | Decision |\n|---|------|----------------|----------|\n| 1 | Initial actions | Show paste and upload before content exists | |\n| 2 | Content actions | Show save, share, export, translate after content exists | |\n| 3 | Scroll controls | Show only when the content is long enough | |\n| 4 | Mobile density | Avoid duplicated actions across top and bottom bars | |\n\n## Long Preview Body\n\n### Section 1\nNanoMD renders Markdown with a preview-first workflow. This section exists to create enough vertical space for scroll testing.\n\n### Section 2\nThe viewport lab should make it easy to inspect the header, bottom navigation, and floating controls in one place.\n\n### Section 3\nThe mobile frame is intentionally narrow so button crowding becomes visible before code changes are made.\n\n### Section 4\nThe tablet frame helps reveal intermediate layout issues that do not appear on desktop or mobile.\n\n### Section 5\nUse Reload after changing the content state if you want to reset the application preview inside the iframe.\n\n### Section 6\nThis content keeps going so the scroll buttons and bottom spacing can be inspected in the built application.\n\n### Section 7\nCode blocks and inline code should not affect the toolbar layout. Example inline code: \`npm run build\`.\n\n\`\`\`ts\nexport const viewport = "mobile";\nexport const hasContent = true;\n\`\`\`\n\n### Section 8\nThe final lines should remain visible above the mobile bottom navigation bar.\n\n### Section 9\nIf the last paragraph is hidden, the app needs spacing changes rather than content changes.\n\n### Section 10\nEnd of long sample content.\n`
+    };
+
+    function encodeHashContent(content) {
+      if (!content) return "";
+      return btoa(unescape(encodeURIComponent(content)));
+    }
+
+    function getPreviewUrl(contentName) {
+      const content = contentFixtures[activeContent] || "";
+      const hash = encodeHashContent(content);
+
+      if (!hash) return PREVIEW_PAGE_PATH;
+      return `${PREVIEW_PAGE_PATH}#${hash}`;
+    }
+
+    function clearPreviewDraft() {
+      try {
+        window.localStorage.removeItem("nanomd_current_draft");
+        window.localStorage.removeItem("nanomd_history");
+      } catch (error) {
+        console.warn("Unable to clear NanoMD preview storage.", error);
+      }
+    }
+
+    function loadPreview() {
+      const stateLabels = {
+        empty: "empty state",
+        sample: "sample content",
+        long: "long content"
+      };
+      
+      statusLabel.textContent = `Showing ${stateLabels[activeContent]} in the current dist bundle.`;
+      statusLabel.classList.remove("error");
+      
+      if (activeContent === "empty") {
+        clearPreviewDraft();
+      }
+
+      frame.removeAttribute("srcdoc");
+      frame.src = "about:blank";
+      window.setTimeout(() => {
+        frame.src = getPreviewUrl(activeContent);
+      }, 32);
+    }
+
+    function setViewport(name) {
+      const profile = viewportProfiles[name];
+      if (!profile) return;
+
+      activeViewport = name;
+      deviceFrame.style.setProperty("--frame-width", `${profile.width}px`);
+      deviceFrame.style.setProperty("--frame-height", `${profile.height}px`);
+      deviceFrame.classList.toggle("mobile", profile.className === "mobile");
+      viewportLabel.textContent = profile.label;
+      sizeLabel.textContent = `${profile.width} x ${profile.height}`;
+
+      viewportButtons.forEach((button) => {
+        button.classList.toggle("active", button.dataset.viewport === name);
+      });
+    }
+
+    function setContentState(name) {
+      if (!Object.prototype.hasOwnProperty.call(contentFixtures, name)) return;
+
+      activeContent = name;
+      contentButtons.forEach((button) => {
+        button.classList.toggle("active", button.dataset.content === name);
+      });
+      loadPreview();
+    }
+
+    viewportButtons.forEach((button) => {
+      button.addEventListener("click", () => setViewport(button.dataset.viewport));
+    });
+
+    contentButtons.forEach((button) => {
+      button.addEventListener("click", () => setContentState(button.dataset.content));
+    });
+
+    reloadButton.addEventListener("click", loadPreview);
+
+    setViewport(activeViewport);
+    loadPreview();
+  </script>
+</body>
+</html>

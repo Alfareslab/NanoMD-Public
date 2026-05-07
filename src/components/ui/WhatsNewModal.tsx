@@ -9,8 +9,25 @@ interface WhatsNewModalProps {
 
 const updates = [
     {
-        version: 'v1.6.0',
+        version: 'v1.7.0',
         isLatest: true,
+        title: 'ترجمة سياقية أذكى',
+        items: [
+            {
+                icon: <Zap className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />,
+                title: 'نموذج ترجمة أحدث',
+                desc: 'الترجمة الذكية تعمل الآن على Gemma 4 مع نموذج احتياطي سريع لضمان استقرار الخدمة.',
+            },
+            {
+                icon: <ShieldCheck className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />,
+                title: 'ترجمة واعية بالسياق',
+                desc: 'خيار جديد يساعد الترجمة على فهم المجال قبل الصياغة، مع حد مباشر يصل إلى 50000 حرف.',
+            },
+        ],
+    },
+    {
+        version: 'v1.6.0',
+        isLatest: false,
         title: 'الدليل التفاعلي والنافذة الذكية',
         items: [
             {
@@ -154,7 +171,7 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ isOpen, onClose })
                                 ما الجديد في NanoMD؟
                             </h2>
                             <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                                إصدار v1.6.0 — اكتشف أحدث الميزات
+                                إصدار v1.7.0 — اكتشف أحدث الميزات
                             </p>
                         </div>
                     </div>

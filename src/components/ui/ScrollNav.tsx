@@ -3,19 +3,13 @@ import { ChevronsUp, ChevronUp, ChevronDown, ChevronsDown, Undo2, Loader2 } from
 import { useAppContext } from '../../contexts/AppContext';
 
 export const ScrollNav = () => {
-    const { appState, setAppState } = useAppContext();
+    const { appState, translationState, translateContent, undoTranslation, toggleContextTranslation } = useAppContext();
     const [showTop, setShowTop] = useState(false);
     const [showUp, setShowUp] = useState(false);
     const [showDown, setShowDown] = useState(false);
     const [showBottom, setShowBottom] = useState(false);
     const [progress, setProgress] = useState(0);
     const [isVisible, setIsVisible] = useState(false);
-    
-    // Translation States
-    const [isTranslating, setIsTranslating] = useState(false);
-    const [translateError, setTranslateError] = useState<string | null>(null);
-    const [undoHistory, setUndoHistory] = useState<string | null>(null);
-
     const handleScroll = useCallback(() => {
         const container = document.getElementById('print-area');
         if (!container) return;
@@ -95,70 +89,18 @@ export const ScrollNav = () => {
         if (container) scrollByAmount(container.clientHeight * 0.8);
     };
 
-    // Translation Handlers
-    const handleTranslate = async (targetLang: 'ar' | 'en') => {
-        const selection = window.getSelection()?.toString();
-        const textToTranslate = selection || appState.content;
-        
-        if (!textToTranslate.trim()) return;
-
-        setIsTranslating(true);
-        setTranslateError(null);
-
-        try {
-            const response = await fetch('/api/translate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: textToTranslate, targetLang })
-            });
-            
-            const data = await response.json();
-            
-            if (!response.ok) {
-                throw new Error(data.error || 'حدث خطأ أثناء الترجمة');
-            }
-
-            // Save for undo
-            setUndoHistory(appState.content);
-
-            if (selection) {
-                setAppState(prev => ({
-                    ...prev,
-                    content: prev.content.replace(selection, data.translated)
-                }));
-            } else {
-                setAppState(prev => ({
-                    ...prev,
-                    content: data.translated
-                }));
-            }
-        } catch (error: any) {
-            setTranslateError(error.message || 'حدث خطأ غير متوقع');
-            setTimeout(() => setTranslateError(null), 3000);
-        } finally {
-            setIsTranslating(false);
-        }
-    };
-
-    const handleUndo = () => {
-        if (undoHistory) {
-            setAppState(prev => ({ ...prev, content: undoHistory }));
-            setUndoHistory(null);
-        }
-    };
-
     // Make ScrollNav always visible if there's undo history, we're translating, or there is content (to show translation buttons)
     const hasContent = appState.content.trim().length > 0;
-    const showControls = isVisible || undoHistory || isTranslating || hasContent;
+    const showControls = isVisible || translationState.canUndo || translationState.isTranslating || hasContent;
     if (!showControls) return null;
 
     return (
         <>
             <div className="scroll-nav-wrapper">
                 {/* Toast Error Message */}
-                {translateError && (
+                {translationState.error && (
                     <div className="absolute top-0 right-full mr-4 whitespace-nowrap bg-red-500/90 text-white px-3 py-1.5 rounded text-sm backdrop-blur-sm border border-red-400 animate-toast shadow-lg">
-                        {translateError}
+                        {translationState.error}
                     </div>
                 )}
                 
@@ -171,28 +113,37 @@ export const ScrollNav = () => {
                 <div className="scroll-nav">
                     {/* Translation Controls */}
                     <div className="flex flex-col gap-2 pb-2 mb-2 border-b border-border-default">
+                        <button
+                            className={`scroll-nav-btn visible ${appState.useContextTranslation ? 'text-accent border-accent/50' : 'opacity-60'}`}
+                            onClick={toggleContextTranslation}
+                            disabled={translationState.isTranslating}
+                            title="Context-aware translation"
+                            aria-label="Toggle context-aware translation"
+                        >
+                            <span className="font-bold text-[10px]">CTX</span>
+                        </button>
                         <button 
                             className="scroll-nav-btn visible"
-                            onClick={() => handleTranslate('ar')}
-                            disabled={isTranslating}
+                            onClick={() => translateContent('ar')}
+                            disabled={translationState.isTranslating}
                             title="ترجم للعربية"
                             aria-label="Translate to Arabic"
                         >
-                            {isTranslating ? <Loader2 size={16} className="animate-spin" /> : <span className="font-bold text-xs">AR</span>}
+                            {translationState.isTranslating ? <Loader2 size={16} className="animate-spin" /> : <span className="font-bold text-xs">AR</span>}
                         </button>
                         <button 
                             className="scroll-nav-btn visible"
-                            onClick={() => handleTranslate('en')}
-                            disabled={isTranslating}
+                            onClick={() => translateContent('en')}
+                            disabled={translationState.isTranslating}
                             title="ترجم للإنجليزية"
                             aria-label="Translate to English"
                         >
-                            {isTranslating ? <Loader2 size={16} className="animate-spin" /> : <span className="font-bold text-xs">EN</span>}
+                            {translationState.isTranslating ? <Loader2 size={16} className="animate-spin" /> : <span className="font-bold text-xs">EN</span>}
                         </button>
-                        {undoHistory && (
+                        {translationState.canUndo && (
                             <button 
                                 className="scroll-nav-btn visible text-amber-500 dark:text-amber-400 border-amber-500/50 hover:bg-amber-500 hover:text-white animate-undo-btn"
-                                onClick={handleUndo}
+                                onClick={undoTranslation}
                                 title="تراجع عن الترجمة"
                                 aria-label="Undo translation"
                             >

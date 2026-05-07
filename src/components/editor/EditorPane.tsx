@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { htmlToMarkdown, plainTextSmartConvert } from '../../utils/htmlToMarkdown';
+import { useAppContext } from '../../contexts/AppContext';
 
 interface EditorPaneProps {
     content: string;
@@ -8,6 +9,7 @@ interface EditorPaneProps {
 }
 
 export const EditorPane: React.FC<EditorPaneProps> = ({ content, onChange, autoFocus }) => {
+    const { setAppState } = useAppContext();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {
@@ -18,6 +20,20 @@ export const EditorPane: React.FC<EditorPaneProps> = ({ content, onChange, autoF
 
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         onChange(e.target.value);
+        updateEditorSelection(e.currentTarget);
+    };
+
+    const updateEditorSelection = (textarea: HTMLTextAreaElement) => {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = textarea.value.slice(start, end);
+
+        setAppState(prev => ({
+            ...prev,
+            editorSelection: start < end && text.trim()
+                ? { start, end, text }
+                : null
+        }));
     };
 
     /**
@@ -65,6 +81,13 @@ export const EditorPane: React.FC<EditorPaneProps> = ({ content, onChange, autoF
                 value={content}
                 onChange={handleChange}
                 onPaste={handlePaste}
+                onSelect={(e) => updateEditorSelection(e.currentTarget)}
+                onKeyUp={(e) => updateEditorSelection(e.currentTarget)}
+                onMouseUp={(e) => updateEditorSelection(e.currentTarget)}
+                onBlur={() => {
+                    if (!textareaRef.current) return;
+                    updateEditorSelection(textareaRef.current);
+                }}
                 className="editor-textarea flex-1 w-full p-4 sm:p-6 bg-transparent resize-none outline-none text-foreground font-mono leading-relaxed"
                 placeholder="اكتب أو الصق نص الماركداون هنا..."
                 dir="rtl"

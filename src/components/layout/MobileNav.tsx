@@ -127,9 +127,7 @@ const Divider = () => (
 // MobileNav
 // ─────────────────────────────────────────────────────────
 export const MobileNav: React.FC = () => {
-    const { appState, setAppState } = useAppContext();
-    const [isTranslating, setIsTranslating] = useState(false);
-    const [undoHistory, setUndoHistory] = useState<string | null>(null);
+    const { appState, setAppState, translationState, translateContent, undoTranslation, toggleContextTranslation } = useAppContext();
     const [targetLang, setTargetLang] = useState<'ar' | 'en'>('ar');
 
     const handleTabClick = (view: 'preview' | 'editor') => {
@@ -143,41 +141,6 @@ export const MobileNav: React.FC = () => {
             container.scrollBy({ top: direction === 'up' ? -amount : amount, behavior: 'smooth' });
         }
     }, []);
-
-    const handleTranslate = async (targetLang: 'ar' | 'en') => {
-        const selection = window.getSelection()?.toString();
-        const textToTranslate = selection || appState.content;
-        if (!textToTranslate.trim()) return;
-
-        setIsTranslating(true);
-        try {
-            const response = await fetch('/api/translate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: textToTranslate, targetLang })
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Translation failed');
-
-            setUndoHistory(appState.content);
-            if (selection) {
-                setAppState(prev => ({ ...prev, content: prev.content.replace(selection, data.translated) }));
-            } else {
-                setAppState(prev => ({ ...prev, content: data.translated }));
-            }
-        } catch (err) {
-            console.error('Translation error:', err);
-        } finally {
-            setIsTranslating(false);
-        }
-    };
-
-    const handleUndo = () => {
-        if (undoHistory) {
-            setAppState(prev => ({ ...prev, content: undoHistory }));
-            setUndoHistory(null);
-        }
-    };
 
     const hasContent = appState.content.trim().length > 0;
     const isPreview = appState.viewMode === 'preview';
@@ -233,29 +196,40 @@ export const MobileNav: React.FC = () => {
 
                 {hasContent && <Divider />}
 
+                {/* ── Context Translate Toggle ── */}
+                {hasContent && (
+                    <NavItem
+                        icon={<span className="text-[10px] font-black tracking-tight leading-none">CTX</span>}
+                        label="سياق"
+                        active={appState.useContextTranslation}
+                        disabled={translationState.isTranslating}
+                        onClick={toggleContextTranslation}
+                    />
+                )}
+
                 {/* ── Smart Translate ── */}
                 {hasContent && (
                     <NavItem
                         icon={
-                            isTranslating
+                            translationState.isTranslating
                                 ? <Loader2 className="w-[16px] h-[16px] animate-spin" />
                                 : <span className="text-[12px] font-black tracking-tight leading-none">{targetLang === 'ar' ? 'AR' : 'EN'}</span>
                         }
                         label="ترجمة"
                         accent
-                        disabled={isTranslating}
-                        onClick={() => handleTranslate(targetLang)}
+                        disabled={translationState.isTranslating}
+                        onClick={() => translateContent(targetLang)}
                         onLongPress={() => setTargetLang(prev => prev === 'ar' ? 'en' : 'ar')}
                     />
                 )}
 
                 {/* ── Undo Translation ── */}
-                {undoHistory && (
+                {translationState.canUndo && (
                     <NavItem
                         icon={<Undo2 className="w-[18px] h-[18px]" />}
                         label="تراجع"
                         amber
-                        onClick={handleUndo}
+                        onClick={undoTranslation}
                     />
                 )}
 

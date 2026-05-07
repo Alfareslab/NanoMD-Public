@@ -1,6 +1,12 @@
 export type Theme = 'noir' | 'slate' | 'cream';
 export type ViewMode = 'preview' | 'editor' | 'split' | 'focus';
 
+export interface EditorSelection {
+    start: number;
+    end: number;
+    text: string;
+}
+
 export interface AppState {
     content: string;
     theme: Theme;
@@ -14,6 +20,8 @@ export interface AppState {
     isEmpty: boolean;
     lastActive: string;
     isSharedView?: boolean;
+    useContextTranslation: boolean;
+    editorSelection: EditorSelection | null;
 }
 
 export interface ContentVersion {
