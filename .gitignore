@@ -27,3 +27,25 @@ _backup_*
 .gemini/
 brain/
 *.md.tmp
+
+# Claude & AI tools (internal)
+.claude/
+_Antigravity Pro User/
+
+# Internal planning & review docs
+chats/
+plans/
+reviews/
+improvements/
+specs/
+01-NanoMD.md
+02-speckit-workflow-guide.md
+03-NanoMD.md
+04-NanoMD.md
+master-constitution.md
+project-context.md
+project-key.md
+cloudflare-workers-deployment-guide.md
+open-test.mjs
+print-url.mjs
+docs/05-workers-ai-models-research.md
