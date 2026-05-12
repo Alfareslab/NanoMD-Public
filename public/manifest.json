@@ -1,0 +1,25 @@
+{
+  "name": "NanoMD",
+  "short_name": "NanoMD",
+  "description": "محرر Markdown عربي متخصص",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAF9F6",
+  "theme_color": "#3B82F6",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "/nanomd-logo.png",
+      "sizes": "1254x1254",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/nanomd-logo.png",
+      "sizes": "1254x1254",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

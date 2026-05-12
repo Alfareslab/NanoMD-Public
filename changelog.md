@@ -1,5 +1,17 @@
 # 📝 سجل التغييرات (Changelog) - NanoMD
 
+## [v1.7.1] - 2026-05-12
+
+### أُصلح (Fixed)
+- **أيقونة التطبيق (Favicon + PWA):** استبدال أيقونة Vite الافتراضية بشعار NanoMD الرسمي في تبويب المتصفح، مع دعم `apple-touch-icon` وملف `manifest.json` لتثبيت التطبيق من Chrome كـ PWA على سطح المكتب والموبايل.
+- **كشف اتجاه الـ Code Block تلقائياً:** إضافة دالة `detectCodeDir` في `CodeBlock.tsx` تكشف أول حرف قوي في المحتوى (Arabic Unicode ranges كاملة أو Latin) وتُمرر `dir` attribute على `<pre>` — الـ code blocks العربية تصبح RTL والإنجليزية تبقى LTR تلقائياً.
+- **إصلاح code blocks بدون لغة:** تحديث منطق `isInline` في `PreviewPane.tsx` ليعتمد على وجود `\n` لا على وجود className فقط — code fences بدون لغة محددة تُعرَض الآن كـ block صحيح لا كـ inline code.
+- **اتجاه ذكي في المحرر:** تغيير `dir="rtl"` إلى `dir="auto"` على الـ textarea — كل سطر يكشف اتجاهه تلقائياً من أول حرف قوي فيه.
+- **عناوين أعمدة الجداول:** إضافة `unicode-bidi: plaintext; text-align: start` على `th` في `preview.css` لتوافق عناوين الأعمدة الإنجليزية مع اتجاه المحتوى.
+
+### تم التعديل (Changed)
+- **تنظيف CSS لـ pre:** إزالة `direction: ltr; text-align: left` المُقيِّدة من `.preview-content pre` والاعتماد على `dir` attribute المُحدَّد برمجياً بدلاً منها.
+
 ## [v1.7.0] - 2026-05-07
 
 ### أُضيف (Added)

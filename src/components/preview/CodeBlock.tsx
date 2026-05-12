@@ -7,6 +7,16 @@ interface CodeBlockProps {
   node?: any;
 }
 
+// Arabic Unicode ranges: Arabic, Arabic Supplement, Arabic Extended-A, Presentation Forms-A/B
+const ARABIC_RE = /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/;
+const STRONG_CHAR_RE = /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿A-Za-z]/;
+
+function detectCodeDir(code: string): 'rtl' | 'ltr' {
+    const match = code.match(STRONG_CHAR_RE);
+    if (match && ARABIC_RE.test(match[0])) return 'rtl';
+    return 'ltr';
+}
+
 export const CodeBlock = ({ className, children }: CodeBlockProps) => {
   const [copied, setCopied] = useState(false);
 
@@ -56,7 +66,7 @@ export const CodeBlock = ({ className, children }: CodeBlockProps) => {
           )}
         </button>
       </div>
-      <pre>
+      <pre dir={detectCodeDir(codeString)}>
         <code className={className}>
           {children}
         </code>

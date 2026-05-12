@@ -118,12 +118,12 @@ function InlineCode({ children }: { children?: React.ReactNode }) {
 
 const markdownComponents = {
     code({ className, children, ...props }: { className?: string; children?: React.ReactNode; [key: string]: any }) {
-        // Inline code: no language className
-        const isInline = !className;
+        // Inline code: no language AND no newlines (single-backtick `code`)
+        const isInline = !className && !String(children || '').includes('\n');
         if (isInline) {
             return <InlineCode {...props}>{children}</InlineCode>;
         }
-        // Block code: delegate to CodeBlock (which renders its own <pre>)
+        // Block code (with or without language): delegate to CodeBlock
         return (
             <CodeBlock className={className}>
                 {children}

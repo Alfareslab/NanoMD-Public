@@ -9,8 +9,30 @@ interface WhatsNewModalProps {
 
 const updates = [
     {
-        version: 'v1.7.0',
+        version: 'v1.7.1',
         isLatest: true,
+        title: 'إصلاحات RTL والأيقونة',
+        items: [
+            {
+                icon: <Sparkles className="w-5 h-5 text-accent-primary shrink-0 mt-0.5" />,
+                title: 'أيقونة NanoMD في التبويب والتطبيق',
+                desc: 'يظهر شعار NanoMD الآن في تبويب المتصفح وعند تثبيت الموقع كتطبيق من Chrome على سطح المكتب أو الموبايل.',
+            },
+            {
+                icon: <ShieldCheck className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />,
+                title: 'كشف اتجاه الـ Code Block تلقائياً',
+                desc: 'الـ code blocks تحدد اتجاهها (RTL أو LTR) بناءً على أول حرف قوي في المحتوى، بدلاً من تقييد الكل بـ LTR.',
+            },
+            {
+                icon: <Zap className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />,
+                title: 'اتجاه ذكي في المحرر',
+                desc: 'المحرر الآن يكشف اتجاه كل سطر تلقائياً — الأسطر العربية RTL والإنجليزية LTR بدون قيود مسبقة.',
+            },
+        ],
+    },
+    {
+        version: 'v1.7.0',
+        isLatest: false,
         title: 'ترجمة سياقية أذكى',
         items: [
             {
@@ -171,7 +193,7 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ isOpen, onClose })
                                 ما الجديد في NanoMD؟
                             </h2>
                             <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                                إصدار v1.7.0 — اكتشف أحدث الميزات
+                                إصدار v1.7.1 — اكتشف أحدث الميزات
                             </p>
                         </div>
                     </div>
