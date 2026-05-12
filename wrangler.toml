@@ -8,7 +8,8 @@ bucket = "./dist"
 
 [[kv_namespaces]]
 binding = "SHARED_CONTENT"
-id = "a74dc98204b945d88d2858471c9a2567"
+id = "YOUR_KV_NAMESPACE_ID"
+# Create your own KV namespace: wrangler kv:namespace create SHARED_CONTENT
 
 [ai]
 binding = "AI"
